@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const input = document.getElementById('quick-search-input');
             const results = document.getElementById('quick-search-results');
-            
+
             input?.focus();
             input?.addEventListener('input', (event) => {
                 const query = event.target.value.toLowerCase().trim();
@@ -359,9 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryLabel = p.grabadocolor ? 'GRABADO LÁSER A COLOR' : 'GRABADO LÁSER';
         const frontImgPath = getImgPath(p.frontImg);
         const backImgPath = getImgPath(p.backImg);
-        
+
         const targetUrl = window.location.pathname.includes('tienda/') ? `producto.html?id=${p.id}` : `tienda/producto.html?id=${p.id}`;
-        
+
         return `
         <div class="product-card" data-id="${p.id}">
             <a href="${targetUrl}" target="_blank" class="product-image-wrap">
@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDetailView();
     }
 
-    window.changeDetailImg = function(thumb, src) {
+    window.changeDetailImg = function (thumb, src) {
         document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
         thumb.classList.add('active');
         document.getElementById('main-product-img').src = src;
@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.updateQty = function(productId, delta) {
+    window.updateQty = function (productId, delta) {
         const itemIndex = cart.findIndex(item => item.product.id === productId);
         if (itemIndex > -1) {
             cart[itemIndex].quantity += delta;
