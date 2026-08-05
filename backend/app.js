@@ -141,6 +141,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- EFECTO PARALAJE HORIZONTAL CON EL MOUSE PARA EL BANNER DE LA TIENDA ---
+    const storeBanner = document.querySelector('.store-hero-banner');
+
+    if (storeBanner) {
+        let mouseXPercent = 0;
+        let animationFrameId = null;
+
+        function updateParallax() {
+            const bgOffset = mouseXPercent * 40; // Desplazamiento exclusivo de la imagen de fondo
+            storeBanner.style.backgroundPosition = `calc(50% + ${bgOffset}px) center`;
+            animationFrameId = null;
+        }
+
+        storeBanner.addEventListener('mousemove', (e) => {
+            const rect = storeBanner.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            mouseXPercent = (x / rect.width) - 0.5;
+
+            if (!animationFrameId) {
+                animationFrameId = requestAnimationFrame(updateParallax);
+            }
+        });
+
+        storeBanner.addEventListener('mouseleave', () => {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            storeBanner.style.transition = 'background-position 0.5s ease';
+            storeBanner.style.backgroundPosition = 'center center';
+            setTimeout(() => {
+                storeBanner.style.transition = '';
+            }, 500);
+        });
+    }
+
     // --- BASE DE DATOS DE PRODUCTOS MONKEY BINDERS ---
     const products = [
         {

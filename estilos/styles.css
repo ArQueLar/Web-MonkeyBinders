@@ -357,29 +357,46 @@ header.main-header {
    BANER Y HERO SECTIONS
    ========================================================================== */
 .store-hero-banner {
-    background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--bg-surface) 100%);
+    position: relative;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(247, 237, 224, 0.4) 60%, rgba(245, 230, 210, 0.45) 100%), url('../assets/Cosas Web/BannerTienda.jpeg') center/cover no-repeat;
     border-bottom: 1px solid var(--border-color);
-    padding: 45px 20px;
+    padding: 70px 20px;
     text-align: center;
+    overflow: hidden;
 }
 
 .store-banner-content {
-    max-width: 800px;
+    position: relative;
+    z-index: 2;
+    max-width: 720px;
     margin: 0 auto;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-md);
+    padding: 36px 28px;
+    box-shadow: 0 10px 30px rgba(31, 29, 26, 0.12);
 }
 
 .store-banner-content h1 {
     font-size: 36px;
     text-transform: uppercase;
     color: var(--text-primary);
-    margin: 10px 0 8px 0;
+    margin: 12px 0 10px 0;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .store-banner-content p {
     font-size: 15px;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     max-width: 600px;
     margin: 0 auto;
+    line-height: 1.5;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .hero-section {
@@ -1960,10 +1977,13 @@ footer.main-footer {
     }
 
     .store-hero-banner {
-        padding: 30px 15px;
+        padding: 40px 15px;
+    }
+    .store-banner-content {
+        padding: 24px 16px;
     }
     .store-banner-content h1 {
-        font-size: 26px;
+        font-size: 24px;
     }
     .store-banner-content p {
         font-size: 13px;
