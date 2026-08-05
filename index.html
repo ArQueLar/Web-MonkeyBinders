@@ -42,7 +42,7 @@
     <header class="main-header" id="main-header">
         <div class="header-container">
             <a href="index.html" class="brand-logo" id="logo-link">
-                <img src="assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo">
+                <img src="assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo" id="header-logo-img">
             </a>
 
             <nav class="nav-container">
@@ -69,6 +69,9 @@
             </nav>
 
             <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle-btn" title="Alternar Tema">
+                    <img src="assets/Cosas Web/svg/luna.svg" alt="Tema" class="header-icon-svg" id="theme-icon">
+                </button>
                 <button class="icon-btn" id="search-toggle-btn" title="Buscar Productos">
                     <img src="assets/Cosas Web/svg/lupa.svg" alt="Buscar" class="header-icon-svg">
                 </button>
@@ -134,7 +137,7 @@
                 </div>
             </div>
             <div class="about-image-card" id="about-image-slider">
-                <img src="assets/Cosas Web/Fotos Binders/Reshiram/MonkeyBinders_FrontReshiram_171125.jpg"
+                <img src="assets/Cosas Web/Fotos Binders/PNG/Reshiram/MonkeyBinders_FrontReshiram_171125.jpg"
                     alt="Binder Charizard Grabado" class="slider-img active">
                 <img src="assets/Cosas Web/Fotos Binders/Greninja/1.png" alt="Binder Greninja" class="slider-img">
                 <img src="assets/Cosas Web/Fotos Binders/LugiaHoOh/MonkeyBinders_FrontLugiaHoOh_171125.jpg"
@@ -361,7 +364,7 @@
     <!-- MODAL VISTA RÁPIDA -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
-            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:#111;"
+            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);"
                 id="close-modal-btn">✕</button>
             <div id="modal-body"></div>
         </div>

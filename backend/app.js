@@ -9,7 +9,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return isSubfolder ? `../${path}` : path;
     }
 
-    // --- DELEGACIÓN GLOBAL DE EVENTOS PARA EL MENÚ MÓVIL (COMPATIBLE CON TOUCH/MÓVIL) ---
+    // --- MODO OSCURO & CAMBIO DINÁMICO DE LOGO ---
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    const headerLogoImg = document.getElementById('header-logo-img');
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+
+        if (themeIcon) {
+            const basePath = getImgPath('assets/Cosas Web/svg/');
+            themeIcon.src = theme === 'dark' ? basePath + 'sol.svg' : basePath + 'luna.svg';
+        }
+
+        if (headerLogoImg) {
+            const isSub = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
+            const logoPath = isSub ? '../assets/Cosas Web/Logo/' : 'assets/Cosas Web/Logo/';
+            headerLogoImg.src = theme === 'dark' ? logoPath + 'LogoBlanco.png' : logoPath + 'Logo.png';
+        }
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+    }
+
+    // --- DELEGACIÓN GLOBAL DE EVENTOS PARA EL MENÚ MÓVIL ---
     function handleMobileNavToggle(e) {
         const targetBtn = e.target.closest('#mobile-menu-toggle-btn');
         const closeBtn = e.target.closest('#close-mobile-nav-btn');
@@ -29,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
             handleMobileNavToggle(e);
         }
     }, { passive: true });
-
 
     // --- MODAL DE CUENTA Y BUSCADOR ---
     const modalOverlay = document.getElementById('modal-overlay');
@@ -66,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="section-tag">ACCESO A CLIENTES</span>
                     <h2 class="section-title" style="font-size: 22px; margin-bottom: 20px;">MI CUENTA MONKEY BINDERS</h2>
                     <form onsubmit="event.preventDefault(); alert('¡Sesión iniciada correctamente!'); document.getElementById('modal-overlay').classList.remove('active');" style="display:flex; flex-direction:column; gap:12px; max-width:320px; margin:0 auto;">
-                        <input type="email" placeholder="Correo electrónico" class="newsletter-input" required style="background:#f4f4f5; color:#111; border:1px solid #ccc;">
-                        <input type="password" placeholder="Contraseña" class="newsletter-input" required style="background:#f4f4f5; color:#111; border:1px solid #ccc;">
+                        <input type="email" placeholder="Correo electrónico" class="newsletter-input" required style="background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border-color);">
+                        <input type="password" placeholder="Contraseña" class="newsletter-input" required style="background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border-color);">
                         <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px;">INICIAR SESIÓN</button>
                     </form>
                     <p style="font-size:12px; color:var(--text-muted); margin-top:15px;">¿No tienes cuenta? <a href="#" style="color:var(--accent-jungle); font-weight:700;">Regístrate aquí</a></p>
@@ -81,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="text-align:center; padding: 10px;">
                     <span class="section-tag">BÚSQUEDA RÁPIDA</span>
                     <h2 class="section-title" style="font-size: 20px; margin-bottom: 15px;">ENCONTRAR BINDER</h2>
-                    <input type="text" id="quick-search-input" placeholder="Escribe Charizard, Mew, 12P..." class="newsletter-input" style="background:#f4f4f5; color:#111; border:1px solid #ccc; width:100%; padding:12px; font-size:14px;">
+                    <input type="text" id="quick-search-input" placeholder="Escribe Charizard, Mew, 12P..." class="newsletter-input" style="background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border-color); width:100%; padding:12px; font-size:14px;">
                     <div id="quick-search-results" style="margin-top:15px; text-align:left; max-height:200px; overflow-y:auto;"></div>
                 </div>
             `);
@@ -103,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isSub = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
                     const basePath = isSub ? 'producto.html' : 'tienda/producto.html';
                     results.innerHTML = matches.map(m => `
-                        <a href="${basePath}?id=${m.id}" style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #eee; text-decoration:none;">
+                        <a href="${basePath}?id=${m.id}" style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-color); text-decoration:none;">
                             <img src="${getImgPath(m.frontImg)}" style="width:36px; height:36px; object-fit:contain;">
                             <div>
                                 <div style="font-size:13px; font-weight:700; color:var(--text-primary);">${m.name}</div>
@@ -149,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let animationFrameId = null;
 
         function updateParallax() {
-            const bgOffset = mouseXPercent * 40; // Desplazamiento exclusivo de la imagen de fondo
+            const bgOffset = mouseXPercent * 40; 
             storeBanner.style.backgroundPosition = `calc(50% + ${bgOffset}px) center`;
             animationFrameId = null;
         }
@@ -364,14 +394,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
         <div class="product-card" data-id="${p.id}">
-            <a href="${targetUrl}" target="_blank" class="product-image-wrap">
+            <a href="${targetUrl}" class="product-image-wrap">
                 <span class="product-badge">${p.badge}</span>
                 <img src="${frontImgPath}" alt="${p.name}" class="${p.backImg !== p.frontImg ? 'img-front' : 'img-front-only'}">
                 ${p.backImg !== p.frontImg ? `<img src="${backImgPath}" alt="${p.name} Trasero" class="img-back">` : ''}
             </a>
             <div class="product-details">
                 <div class="product-category">${categoryLabel}</div>
-                <h3 class="product-title"><a href="${targetUrl}" target="_blank">${p.name}</a></h3>
+                <h3 class="product-title"><a href="${targetUrl}">${p.name}</a></h3>
                 <div class="product-rating">
                     ★★★★★ <span>${p.rating}</span>
                     <span class="rating-count">(${p.reviewsCount} reseñas)</span>
@@ -380,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="product-price">
                         <span class="current-price">${p.price.toFixed(2)} €</span>
                     </div>
-                    <a href="${targetUrl}" target="_blank" class="add-cart-btn">Ver Opciones</a>
+                    <a href="${targetUrl}" class="add-cart-btn">Ver Opciones</a>
                 </div>
             </div>
         </div>
@@ -473,6 +503,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function renderDetailView() {
             productDetailView.innerHTML = `
+                <div style="grid-column: 1 / -1; margin-bottom: -10px;">
+                    <a href="tienda.html" class="btn-secondary" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px;">
+                        ← Volver a la Tienda
+                    </a>
+                </div>
                 <div class="product-gallery">
                     <img src="${getImgPath(currentProduct.frontImg)}" id="main-product-img" class="product-main-img" alt="${currentProduct.name}">
                     <div class="gallery-thumbs">
