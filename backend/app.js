@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MONKEY BINDERS - E-Commerce, Filtros, Detalle de Producto y Paralaje
+   MONKEY BINDERS - E-Commerce, Filtros, Detalle de Producto, Paralaje y Menú Móvil
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,26 +9,56 @@ document.addEventListener('DOMContentLoaded', () => {
         return isSubfolder ? `../${path}` : path;
     }
 
+    // --- LÓGICA DEL MENÚ NAVEGACIÓN MÓVIL (DRAWER) ---
+    const mobileMenuToggleBtn = document.getElementById('mobile-menu-toggle-btn');
+    const closeMobileNavBtn = document.getElementById('close-mobile-nav-btn');
+    const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-list a');
+
+    function toggleMobileNav(open) {
+        if (open) {
+            mobileNavOverlay?.classList.add('active');
+        } else {
+            mobileNavOverlay?.classList.remove('active');
+        }
+    }
+
+    if (mobileMenuToggleBtn) {
+        mobileMenuToggleBtn.addEventListener('click', () => toggleMobileNav(true));
+    }
+
+    if (closeMobileNavBtn) {
+        closeMobileNavBtn.addEventListener('click', () => toggleMobileNav(false));
+    }
+
+    if (mobileNavOverlay) {
+        mobileNavOverlay.addEventListener('click', (e) => {
+            if (e.target === mobileNavOverlay) {
+                toggleMobileNav(false);
+            }
+        });
+    }
+
+    // Cerrar el menú desplegable al hacer clic en cualquier enlace
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => toggleMobileNav(false));
+    });
+
     // --- ROTACIÓN AUTOMÁTICA DE IMÁGENES EN "SOBRE NOSOTROS" ---
     function initAboutSlider() {
-    const sliderImages = document.querySelectorAll('.about-image-card .slider-img');
-    if (sliderImages.length < 2) return;
+        const sliderImages = document.querySelectorAll('.about-image-card .slider-img');
+        if (sliderImages.length < 2) return;
 
-    let currentIndex = 0;
+        let currentIndex = 0;
 
-    setInterval(() => {
-        // Quita la clase active de la imagen actual
-        sliderImages[currentIndex].classList.remove('active');
-        
-        // Pasa a la siguiente imagen (vuelve al inicio al llegar al final)
-        currentIndex = (currentIndex + 1) % sliderImages.length;
-        
-        // Añade la clase active a la nueva imagen
-        sliderImages[currentIndex].classList.add('active');
-    }, 3500); // Cambia cada 3.5 segundos
-}
+        setInterval(() => {
+            sliderImages[currentIndex].classList.remove('active');
+            currentIndex = (currentIndex + 1) % sliderImages.length;
+            sliderImages[currentIndex].classList.add('active');
+        }, 3500);
+    }
 
-initAboutSlider();
+    initAboutSlider();
 
     // --- EFECTO PARALAJE EN EL HERO DE INICIO ---
     window.addEventListener('scroll', () => {
