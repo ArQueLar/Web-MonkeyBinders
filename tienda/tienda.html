@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda Oficial | Monkey Binders EU</title>
+    <link rel="icon" href="../assets/Cosas Web/Logo/Monkey.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../estilos/styles.css">
+</head>
+<body>
+
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <div class="announcement-item"><span>⚡</span><span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span></div>
+        </div>
+    </div>
+
+    <header class="main-header" id="main-header">
+        <div class="header-container">
+            <a href="../index.html" class="brand-logo" id="logo-link">
+                <img src="../assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo">
+            </a>
+
+            <nav class="nav-container">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link">Inicio</a></li>
+                    <li class="nav-item"><a href="tienda.html" class="nav-link active">Tienda</a></li>
+                    <li class="nav-item"><a href="../index.html#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li class="nav-item"><a href="../index.html#reviews" class="nav-link">Comunidad</a></li>
+                    <li class="nav-item"><a href="../index.html#contact" class="nav-link">Contacto</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <button class="icon-btn" id="search-toggle-btn" title="Buscar Productos">
+                    <img src="../assets/Cosas Web/svg/lupa.svg" alt="Buscar" class="header-icon-svg">
+                </button>
+                <button class="icon-btn" id="cart-toggle-btn" title="Carrito de Compras">
+                    <img src="../assets/Cosas Web/svg/carrito.svg" alt="Carrito" class="header-icon-svg">
+                    <span class="badge-count" id="cart-count-badge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- BANNER DE SEPARACIÓN -->
+    <section class="store-hero-banner">
+        <div class="store-banner-content">
+            <span class="hero-badge">EDICIONES EXCLUSIVAS 2026</span>
+            <h1>Catálogo Oficial de Binders</h1>
+            <p>Protección de máxima gama, cubiertas Exo-Tec y grabados láser de precisión para tus cartas más valiosas.</p>
+        </div>
+    </section>
+
+    <section class="color-selector-section">
+        <div class="filter-wrapper">
+            <div class="filter-group">
+                <span class="filter-label">JUEGO / TCG:</span>
+                <div class="filter-buttons" id="tcg-filter-btns">
+                    <button class="swatch-btn active" data-tcg="all">Todos</button>
+                    <button class="swatch-btn" data-tcg="pokemon">Pokémon</button>
+                    <button class="swatch-btn" data-tcg="magic">Magic</button>
+                    <button class="swatch-btn" data-tcg="otros">Otros TCG</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-label">GRABADO:</span>
+                <div class="filter-buttons" id="finish-filter-btns">
+                    <button class="swatch-btn active" data-finish="all">Todos</button>
+                    <button class="swatch-btn" data-finish="monocromo">Láser Estándar</button>
+                    <button class="swatch-btn" data-finish="color"> Grabado a Color</button>
+                </div>
+            </div>
+
+            <div class="filter-group select-group">
+                <span class="filter-label">EXPANSIÓN:</span>
+                <select id="expansion-select" class="filter-dropdown">
+                    <option value="all">Todas las expansiones</option>
+                    <option value="151">Kanto / 151</option>
+                    <option value="phantasmal">Phantasmal Flames</option>
+                    <option value="chaos">Chaos Rising</option>
+                    <option value="legends">Leyendas (Lugia / Ho-Oh)</option>
+                    <option value="pitch-black">Pitch Black</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section class="products-section" id="catalog">
+        <div class="products-filter-bar">
+            <div>
+                <span class="section-tag" style="text-align:left;">CATÁLOGO COMPLETO</span>
+                <h2 class="section-title" style="font-size:28px;">TODOS LOS BINDERS</h2>
+            </div>
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-filter="all">TODOS</button>
+                <button class="tab-btn" data-filter="ediciones">EXPANSIONES</button>
+                <button class="tab-btn" data-filter="dsgn">DISEÑOS</button>
+            </div>
+        </div>
+
+        <div class="product-grid" id="product-grid"></div>
+    </section>
+
+    <footer class="main-footer">
+        <div class="footer-bottom">
+            <div>© 2026 Monkey Binders. Todos los derechos reservados.</div>
+        </div>
+    </footer>
+
+    <div class="cart-drawer-overlay" id="cart-drawer-overlay">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <div class="cart-title"><span>TU CARRITO</span></div>
+                <button class="close-drawer-btn" id="close-cart-btn">✕</button>
+            </div>
+            <div class="cart-items-list" id="cart-items-list"></div>
+            <div class="cart-footer">
+                <div class="cart-subtotal"><span>SUBTOTAL:</span><span id="cart-subtotal">0.00 €</span></div>
+                <button class="checkout-btn" onclick="alert(' Redirigiendo al checkout seguro!')">FINALIZAR COMPRA</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <script src="../backend/app.js"></script>
+</body>
+</html>

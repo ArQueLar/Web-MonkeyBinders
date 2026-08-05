@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Producto | Monkey Binders</title>
+    <link rel="icon" href="../assets/Cosas Web/Logo/Monkey.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../estilos/styles.css">
+    <style>
+        .product-detail-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .product-gallery {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+        }
+        .product-main-img {
+            max-height: 400px;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+        .gallery-thumbs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .thumb-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            padding: 4px;
+        }
+        .thumb-img.active {
+            border-color: var(--accent-jungle);
+        }
+        .selector-group {
+            margin: 20px 0;
+        }
+        .size-options {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .size-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #ffffff;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .size-btn.active {
+            border-color: var(--accent-jungle);
+            background: var(--bg-surface);
+            color: var(--accent-jungle);
+        }
+        .qty-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .qty-picker input {
+            width: 60px;
+            height: 40px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="../index.html" class="brand-logo">
+                <img src="../assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo">
+            </a>
+            <nav class="nav-container">
+                <ul class="nav-menu">
+                    <li><a href="../index.html" class="nav-link">Inicio</a></li>
+                    <li><a href="tienda.html" class="nav-link active">Tienda</a></li>
+                    <li><a href="../index.html#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li><a href="../index.html#reviews" class="nav-link">Comunidad</a></li>
+                    <li><a href="../index.html#contact" class="nav-link">Contacto</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-btn" id="cart-toggle-btn">
+                    <img src="../assets/Cosas Web/svg/carrito.svg" alt="Carrito" class="header-icon-svg">
+                    <span class="badge-count" id="cart-count-badge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="product-detail-container" id="product-detail-view">
+        <!-- Contenido generado dinámicamente desde app.js -->
+    </main>
+
+    <div class="cart-drawer-overlay" id="cart-drawer-overlay">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <div class="cart-title"><span>TU CARRITO</span></div>
+                <button class="close-drawer-btn" id="close-cart-btn">✕</button>
+            </div>
+            <div class="cart-items-list" id="cart-items-list"></div>
+            <div class="cart-footer">
+                <div class="cart-subtotal"><span>SUBTOTAL:</span><span id="cart-subtotal">0.00 €</span></div>
+                <button class="checkout-btn" onclick="alert(' Redirigiendo al checkout seguro!')">FINALIZAR COMPRA</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <script src="../backend/app.js"></script>
+</body>
+</html>
