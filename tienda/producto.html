@@ -105,9 +105,18 @@
                 </ul>
             </nav>
             <div class="header-actions">
+                <button class="icon-btn" id="search-toggle-btn" title="Buscar Productos">
+                    <img src="../assets/Cosas Web/svg/lupa.svg" alt="Buscar" class="header-icon-svg">
+                </button>
+                <button class="icon-btn" id="account-toggle-btn" title="Cuenta de Usuario">
+                    <img src="../assets/Cosas Web/svg/perfil.svg" alt="Perfil" class="header-icon-svg">
+                </button>
                 <button class="icon-btn" id="cart-toggle-btn">
                     <img src="../assets/Cosas Web/svg/carrito.svg" alt="Carrito" class="header-icon-svg">
                     <span class="badge-count" id="cart-count-badge">0</span>
+                </button>
+                <button class="icon-btn mobile-only-btn" id="mobile-menu-toggle-btn" title="Menú Móvil">
+                    ☰
                 </button>
             </div>
         </div>
@@ -128,6 +137,32 @@
                 <div class="cart-subtotal"><span>SUBTOTAL:</span><span id="cart-subtotal">0.00 €</span></div>
                 <button class="checkout-btn" onclick="alert(' Redirigiendo al checkout seguro!')">FINALIZAR COMPRA</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MOBILE NAV DRAWER OVERLAY -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+        <div class="mobile-nav-drawer">
+            <div class="mobile-nav-header">
+                <span style="font-weight:800; color:var(--accent-jungle);">MONKEY BINDERS</span>
+                <button class="close-drawer-btn" id="close-mobile-nav-btn">✕</button>
+            </div>
+            <ul class="mobile-nav-list">
+                <li><a href="../index.html">Inicio</a></li>
+                <li><a href="tienda.html">Tienda</a></li>
+                <li><a href="tienda.html#customizer">Personalizar</a></li>
+                <li><a href="../index.html#about">Sobre Nosotros</a></li>
+                <li><a href="../index.html#reviews">Comunidad</a></li>
+                <li><a href="../index.html#contact">Contacto</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL VISTA RÁPIDA / CUENTA / BUSCADOR -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:#111;" id="close-modal-btn">✕</button>
+            <div id="modal-body"></div>
         </div>
     </div>
 
