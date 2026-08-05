@@ -1166,8 +1166,32 @@ header.main-header {
 .qty-picker {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-top: 8px;
+}
+
+.qty-btn {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 0;
+    line-height: 1;
+}
+
+.qty-btn:hover {
+    background: var(--bg-surface);
+    border-color: var(--accent-jungle);
+    color: var(--accent-jungle);
 }
 
 .qty-picker input {
@@ -1176,9 +1200,21 @@ header.main-header {
     text-align: center;
     font-size: 16px;
     font-weight: 700;
+    color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
+    background: #ffffff;
     outline: none;
+    line-height: 40px;
+    margin: 0;
+    padding: 0;
+    -moz-appearance: textfield;
+}
+
+.qty-picker input::-webkit-outer-spin-button,
+.qty-picker input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* ==========================================================================

@@ -498,9 +498,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="selector-group">
                         <label class="filter-label">CANTIDAD:</label>
                         <div class="qty-picker">
-                            <button class="qty-btn" id="qty-minus" style="width:36px; height:36px;">-</button>
+                            <button class="qty-btn" id="qty-minus">-</button>
                             <input type="number" id="detail-qty" value="1" min="1" readonly>
-                            <button class="qty-btn" id="qty-plus" style="width:36px; height:36px;">+</button>
+                            <button class="qty-btn" id="qty-plus">+</button>
                         </div>
                     </div>
 
