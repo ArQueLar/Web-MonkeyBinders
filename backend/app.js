@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Binder Phantasmal Flames',
             category: 'ediciones',
             tcg: 'pokemon',
-            expansion: 'phantasmal',
+            expansion: 'megaevolutions',
             grabadocolor: false,
             price: 49.58,
             price12p: 54.58,
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Binder Chaos Rising',
             category: 'ediciones',
             tcg: 'pokemon',
-            expansion: 'chaos',
+            expansion: 'megaevolutions',
             grabadocolor: false,
             price: 49.58,
             price12p: 54.58,
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Binder MEW 151',
             category: 'ediciones',
             tcg: 'pokemon',
-            expansion: '151',
+            expansion: 'scarletviolet',
             grabadocolor: false,
             price: 49.58,
             price12p: 54.58,
@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Binder Lucario Megaevolutions',
             category: 'ediciones',
             tcg: 'pokemon',
-            expansion: 'chaos',
+            expansion: 'megaevolutions',
             grabadocolor: false,
             price: 49.58,
             price12p: 54.58,
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Binder Pitch Black',
             category: 'ediciones',
             tcg: 'pokemon',
-            expansion: 'pitch-black',
+            expansion: 'megaevolutions',
             grabadocolor: false,
             price: 49.58,
             price12p: 54.58,
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Binder MEW 151 Color',
             category: 'ediciones',
             tcg: 'pokemon',
-            expansion: '151',
+            expansion: 'scarletviolet',
             grabadocolor: true,
             price: 53.72,
             price12p: 58.72,
@@ -460,6 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
             filterState.tcg = btn.dataset.tcg;
             applyFilters();
+            updateFiltersCountBadge();
         });
     });
 
@@ -470,16 +471,20 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('active');
             filterState.finish = btn.dataset.finish;
             applyFilters();
+            updateFiltersCountBadge();
         });
     });
 
-    const expansionSelect = document.getElementById('expansion-select');
-    if (expansionSelect) {
-        expansionSelect.addEventListener('change', (e) => {
-            filterState.expansion = e.target.value;
+    const expansionBtns = document.querySelectorAll('#expansion-filter-btns .swatch-btn');
+    expansionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            expansionBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterState.expansion = btn.dataset.expansion;
             applyFilters();
+            updateFiltersCountBadge();
         });
-    }
+    });
 
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
@@ -490,6 +495,55 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFilters();
         });
     });
+
+    // --- PANEL LATERAL DE FILTROS (TIENDA.HTML) ---
+    const filtersTriggerBtn = document.getElementById('filters-trigger-btn');
+    const closeFiltersBtn = document.getElementById('close-filters-btn');
+    const filtersDrawerOverlay = document.getElementById('filters-drawer-overlay');
+    const applyFiltersBtn = document.getElementById('apply-filters-btn');
+    const resetFiltersBtn = document.getElementById('reset-filters-btn');
+    const filtersCountBadge = document.getElementById('filters-count-badge');
+
+    function toggleFiltersDrawer(open) {
+        if (open) filtersDrawerOverlay?.classList.add('active');
+        else filtersDrawerOverlay?.classList.remove('active');
+    }
+
+    if (filtersTriggerBtn) filtersTriggerBtn.addEventListener('click', () => toggleFiltersDrawer(true));
+    if (closeFiltersBtn) closeFiltersBtn.addEventListener('click', () => toggleFiltersDrawer(false));
+    if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', () => toggleFiltersDrawer(false));
+    if (filtersDrawerOverlay) {
+        filtersDrawerOverlay.addEventListener('click', (e) => {
+            if (e.target === filtersDrawerOverlay) toggleFiltersDrawer(false);
+        });
+    }
+
+    function updateFiltersCountBadge() {
+        if (!filtersCountBadge) return;
+        let count = 0;
+        if (filterState.tcg !== 'all') count++;
+        if (filterState.finish !== 'all') count++;
+        if (filterState.expansion !== 'all') count++;
+        filtersCountBadge.textContent = count;
+        filtersCountBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+    }
+
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', () => {
+            filterState.tcg = 'all';
+            filterState.finish = 'all';
+            filterState.expansion = 'all';
+
+            tcgBtns.forEach(b => b.classList.toggle('active', b.dataset.tcg === 'all'));
+            finishBtns.forEach(b => b.classList.toggle('active', b.dataset.finish === 'all'));
+            expansionBtns.forEach(b => b.classList.toggle('active', b.dataset.expansion === 'all'));
+
+            applyFilters();
+            updateFiltersCountBadge();
+        });
+    }
+
+    updateFiltersCountBadge();
 
     // --- LÓGICA DE DETALLE DE PRODUCTO (PRODUCTO.HTML) ---
     const productDetailView = document.getElementById('product-detail-view');
@@ -671,6 +725,145 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateCartUI();
+
+    // --- FORMULARIO DE PERSONALIZACIÓN (envío vía Web3Forms + imagen vía nuestra función /api/upload-image) ---
+    const customizerForm = document.getElementById('customizer-form');
+    if (customizerForm) {
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const DEFAULT_UPLOAD_LABEL = '📎 Haz clic para subir una imagen (JPG, PNG · máx. 10MB)';
+        const imageInput = document.getElementById('customizer-image-input');
+        const fileUploadBox = document.getElementById('file-upload-box');
+        const fileUploadLabel = document.getElementById('file-upload-label');
+        const fileErrorText = document.getElementById('file-error-text');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', () => {
+                const file = imageInput.files[0];
+                fileErrorText.style.display = 'none';
+
+                if (!file) {
+                    fileUploadBox.classList.remove('has-file');
+                    fileUploadLabel.textContent = DEFAULT_UPLOAD_LABEL;
+                    return;
+                }
+
+                if (file.size > MAX_FILE_SIZE) {
+                    fileErrorText.textContent = 'La imagen supera los 10MB. Elige un archivo más ligero.';
+                    fileErrorText.style.display = 'block';
+                    imageInput.value = '';
+                    fileUploadBox.classList.remove('has-file');
+                    fileUploadLabel.textContent = DEFAULT_UPLOAD_LABEL;
+                    return;
+                }
+
+                fileUploadBox.classList.add('has-file');
+                fileUploadLabel.textContent = `✓ ${file.name}`;
+            });
+        }
+
+        // Selector de color con muestras (swatches)
+        const colorSwatchBtns = document.querySelectorAll('#color-swatch-grid .color-swatch-btn');
+        const colorBinderInput = document.getElementById('color-binder-value');
+        const colorErrorText = document.getElementById('color-error-text');
+        colorSwatchBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorSwatchBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (colorBinderInput) colorBinderInput.value = btn.dataset.color;
+                if (colorErrorText) colorErrorText.style.display = 'none';
+            });
+        });
+
+        // Sube la imagen a través de nuestra función serverless (/api/upload-image),
+        // que es quien habla con ImgBB. La clave de ImgBB nunca llega al navegador.
+        async function uploadImage(file) {
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+                reader.readAsDataURL(file);
+            });
+
+            const response = await fetch('/api/upload-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64 })
+            });
+            const result = await response.json();
+            if (!result.success) throw new Error('Error al subir la imagen');
+            return result.url;
+        }
+
+        customizerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('customizer-submit-btn');
+            const statusEl = document.getElementById('customizer-form-status');
+            const accessKey = customizerForm.querySelector('input[name="access_key"]').value;
+            const file = imageInput ? imageInput.files[0] : null;
+
+            if (!accessKey || accessKey === 'TU_ACCESS_KEY_DE_WEB3FORMS') {
+                statusEl.textContent = 'Falta configurar la clave de Web3Forms en el formulario.';
+                statusEl.className = 'form-status-error';
+                return;
+            }
+
+            if (colorBinderInput && !colorBinderInput.value) {
+                if (colorErrorText) {
+                    colorErrorText.textContent = 'Elige un color para el binder.';
+                    colorErrorText.style.display = 'block';
+                }
+                document.getElementById('color-swatch-grid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            submitBtn.disabled = true;
+            statusEl.textContent = '';
+            statusEl.className = '';
+
+            try {
+                const formData = new FormData(customizerForm);
+                formData.delete('attachment'); // No enviamos el archivo binario a Web3Forms (requiere plan de pago)
+
+                if (file) {
+                    submitBtn.textContent = 'SUBIENDO IMAGEN...';
+                    const imageUrl = await uploadImage(file);
+                    formData.append('Imagen del diseño', imageUrl);
+                } else {
+                    formData.append('Imagen del diseño', 'No se adjuntó ninguna imagen');
+                }
+
+                submitBtn.textContent = 'ENVIANDO...';
+                const response = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    statusEl.textContent = '✓ ¡Solicitud enviada! Te contactaremos pronto por email.';
+                    statusEl.className = 'form-status-success';
+                    showToast('✓ ¡Solicitud de personalización enviada!');
+                    customizerForm.reset();
+                    if (fileUploadBox) fileUploadBox.classList.remove('has-file');
+                    if (fileUploadLabel) fileUploadLabel.textContent = DEFAULT_UPLOAD_LABEL;
+                    colorSwatchBtns.forEach(b => b.classList.remove('active'));
+                    if (colorBinderInput) colorBinderInput.value = '';
+                } else {
+                    statusEl.textContent = 'Hubo un problema al enviar. Inténtalo de nuevo.';
+                    statusEl.className = 'form-status-error';
+                }
+            } catch (err) {
+                statusEl.textContent = err.message === 'Error al subir la imagen'
+                    ? 'No se pudo subir la imagen. Inténtalo de nuevo o continúa sin adjuntarla.'
+                    : 'Error de conexión. Inténtalo de nuevo más tarde.';
+                statusEl.className = 'form-status-error';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'ENVIAR SOLICITUD';
+            }
+        });
+    }
 
     function showToast(message) {
         const toastContainer = document.getElementById('toast-container');

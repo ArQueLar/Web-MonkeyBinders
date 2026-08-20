@@ -179,6 +179,7 @@
                 <ul class="nav-menu">
                     <li class="nav-item"><a href="../index.html" class="nav-link">Inicio</a></li>
                     <li class="nav-item"><a href="tienda.html" class="nav-link active">Tienda</a></li>
+                    <li class="nav-item"><a href="tienda.html#customizer" class="nav-link">Personalizar</a></li>
                     <li class="nav-item"><a href="../index.html#about" class="nav-link">Sobre Nosotros</a></li>
                     <li class="nav-item"><a href="../index.html#reviews" class="nav-link">Comunidad</a></li>
                     <li class="nav-item"><a href="../index.html#contact" class="nav-link">Contacto</a></li>
@@ -210,9 +211,68 @@
         <!-- Contenido generado dinámicamente desde app.js -->
     </main>
 
-    <footer class="main-footer">
+    <!-- FOOTER OFICIAL -->
+    <footer class="main-footer" id="contact">
+        <div class="footer-container">
+            <div>
+                <div class="footer-brand-title">MONKEY BINDERS</div>
+                <p style="font-size:13px; max-width:320px; line-height:1.6;">
+                    Diseño y fabricación de binders personalizados grabados a láser para coleccionistas exigentes de
+                    cartas Pokémon y otros TCGs.
+                </p>
+                <div style="margin-top:16px; font-size:13px; color:#f3cf55;">
+                    ✉️ <strong>monkeybinders@gmail.com</strong>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-col-title">NAVEGACIÓN</div>
+                <ul class="footer-links">
+                    <li><a href="../index.html">Inicio</a></li>
+                    <li><a href="tienda.html">Tienda Completa</a></li>
+                    <li><a href="../index.html#about">Sobre Nosotros</a></li>
+                    <li><a href="tienda.html#customizer">Personalizar Binder</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-col-title">REDES OFICIALES</div>
+                <ul class="footer-links">
+                    <li><a href="https://t.me/MonkeyBinders" target="_blank"><img
+                                src="../assets/Cosas Web/svg/telegram.svg" alt="Telegram" class="redes-svg"> Canal de
+                            Telegram</a></li>
+                    <li><a href="https://www.instagram.com/monkeybinders" target="_blank"><img
+                                src="../assets/Cosas Web/svg/instagram.svg" alt="Instagram" class="redes-svg">
+                            Instagram</a></li>
+                    <li><a href="https://www.tiktok.com/@monkeybinders" target="_blank"><img
+                                src="../assets/Cosas Web/svg/tiktok.svg" alt="TikTok" class="redes-svg"> TikTok</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-col-title">ATENCIÓN & CLUB</div>
+                <div style="font-size:12px; color:#d1d1d1; margin-bottom:10px;">
+                    ¿Quieres un binder grabado con tu propio logo o personaje? ¡Contáctanos!
+                </div>
+                <form class="newsletter-form"
+                    onsubmit="event.preventDefault(); alert('¡Gracias por unirte al Monkey Club!');">
+                    <input type="email" placeholder="Tu email..." class="newsletter-input" required>
+                    <button type="submit" class="btn-primary" style="padding:10px 16px;">OK</button>
+                </form>
+            </div>
+        </div>
+
         <div class="footer-bottom">
             <div>© 2026 Monkey Binders. Todos los derechos reservados.</div>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div class="payment-icons">
+                    <img src="../assets/Cosas Web/pagos/visa.png" alt="Visa" class="payment-icon">
+                    <img src="../assets/Cosas Web/pagos/mastercard.svg" alt="Mastercard" class="payment-icon">
+                    <img src="../assets/Cosas Web/pagos/applepay.png" alt="Apple Pay" class="payment-icon">
+                    <img src="../assets/Cosas Web/pagos/googlepay.webp" alt="Google Pay" class="payment-icon">
+                </div>
+                <span class="secure-shipping">🔒 Envíos Seguros</span>
+            </div>
         </div>
     </footer>
 
