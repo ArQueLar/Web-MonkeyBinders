@@ -72,7 +72,7 @@ export default async function handler(req, res) {
 
             let tcg = 'pokemon'; // sin categoría = Pokémon por defecto
             if (categNames.includes('Magic')) tcg = 'magic';
-            else if (categNames.includes('Otros')) tcg = 'otros';
+            else if (categNames.includes('Otros')) category = 'dsgn';
 
             const grabadocolor = categNames.includes('Color');
 
