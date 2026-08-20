@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- BASE DE DATOS DE PRODUCTOS MONKEY BINDERS ---
-    //let products = [
+    let products = [
     //    {
     //        id: 'charizard-9p',
     //        name: 'Binder Phantasmal Flames',
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //        backImg: 'assets/Cosas Web/Fotos Binders/PNG/Spiderman/back.png',
     //        description: 'Diseño exclusivo grabado a láser para los jugadores y coleccionistas de Magic The Gathering.'
     //    }
-    //];
+    ];
 
     // --- ESTADO GLOBAL DE FILTROS ---
     const filterState = {
