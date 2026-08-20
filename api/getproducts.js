@@ -9,9 +9,9 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Método no permitido' });
     }
 
-    const ODOO_URL = process.env.ODOO_URL;       // ej: https://midominio.odoo.com (sin barra al final)
-    const ODOO_DB = process.env.ODOO_DB;         // ej: midominio
-    const ODOO_LOGIN = process.env.ODOO_LOGIN;   // email del usuario de integración
+    const ODOO_URL = process.env.ODOO_URL;
+    const ODOO_DB = process.env.ODOO_DB;
+    const ODOO_LOGIN = process.env.ODOO_LOGIN;
     const ODOO_API_KEY = process.env.ODOO_API_KEY;
 
     if (!ODOO_URL || !ODOO_DB || !ODOO_LOGIN || !ODOO_API_KEY) {

@@ -5,6 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     function getImgPath(path) {
+        if (/^https?:\/\//i.test(path)) return path; // URLs absolutas (ej. imágenes de Odoo) se dejan tal cual
         const isSubfolder = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
         return isSubfolder ? `../${path}` : path;
     }
@@ -205,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- BASE DE DATOS DE PRODUCTOS MONKEY BINDERS ---
-    const products = [
+    let products = [
         {
             id: 'charizard-9p',
             name: 'Binder Phantasmal Flames',
@@ -395,17 +396,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
         <div class="product-card" data-id="${p.id}">
             <a href="${targetUrl}" class="product-image-wrap">
-                <span class="product-badge">${p.badge}</span>
+                ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
                 <img src="${frontImgPath}" alt="${p.name}" class="${p.backImg !== p.frontImg ? 'img-front' : 'img-front-only'}">
                 ${p.backImg !== p.frontImg ? `<img src="${backImgPath}" alt="${p.name} Trasero" class="img-back">` : ''}
             </a>
             <div class="product-details">
                 <div class="product-category">${categoryLabel}</div>
                 <h3 class="product-title"><a href="${targetUrl}">${p.name}</a></h3>
+                ${p.rating != null ? `
                 <div class="product-rating">
                     ★★★★★ <span>${p.rating}</span>
                     <span class="rating-count">(${p.reviewsCount} reseñas)</span>
-                </div>
+                </div>` : ''}
                 <div class="product-footer">
                     <div class="product-price">
                         <span class="current-price">${p.price.toFixed(2)} €</span>
@@ -450,6 +452,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (featuredProductGrid) {
         const featuredProducts = products.filter(p => p.featured === true);
         featuredProductGrid.innerHTML = featuredProducts.map(createProductCardHTML).join('');
+    }
+
+    // --- CARGA DE PRODUCTOS DESDE ODOO ---
+    // Se añaden a los productos ya definidos arriba y se vuelve a pintar el catálogo
+    // (o la ficha de producto, si estábamos esperando uno con id "odoo-...").
+    // Si /api/get-products no existe todavía (no está desplegado) o falla, la web sigue
+    // funcionando con normalidad solo con los productos hardcodeados.
+    if (productGrid || featuredProductGrid || productDetailView) {
+        fetch('/api/get-products')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !Array.isArray(data.products) || data.products.length === 0) return;
+
+                products = products.concat(data.products);
+
+                if (productGrid) applyFilters();
+                if (featuredProductGrid) {
+                    const featuredProducts = products.filter(p => p.featured === true);
+                    featuredProductGrid.innerHTML = featuredProducts.map(createProductCardHTML).join('');
+                }
+                if (productDetailView) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const productId = urlParams.get('id') || products[0].id;
+                    const currentProduct = products.find(p => p.id === productId) || products[0];
+                    renderProductDetail(currentProduct);
+                }
+            })
+            .catch(() => {
+                // Silencioso: si Odoo no está conectado todavía, la tienda sigue funcionando igual.
+            });
     }
 
     // --- EVENTOS DE FILTROS EN TIENDA.HTML ---
@@ -550,7 +582,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (productDetailView) {
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id') || products[0].id;
-        const currentProduct = products.find(p => p.id === productId) || products[0];
+        let currentProduct = products.find(p => p.id === productId);
+
+        // Si el ID es de Odoo y todavía no ha llegado (carga asíncrona), esperamos antes de renderizar
+        if (!currentProduct && productId.startsWith('odoo-')) {
+            productDetailView.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 60px 0; color: var(--text-muted);">Cargando producto...</div>`;
+        } else {
+            if (!currentProduct) currentProduct = products[0];
+            renderProductDetail(currentProduct);
+        }
+    }
+
+    function renderProductDetail(currentProduct) {
+        const productDetailView = document.getElementById('product-detail-view');
+        if (!productDetailView) return;
 
         let selectedSize = '9p';
         let currentPrice = currentProduct.price;
@@ -571,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="product-info-panel">
-                    <span class="hero-badge">${currentProduct.badge}</span>
+                    ${currentProduct.badge ? `<span class="hero-badge">${currentProduct.badge}</span>` : ''}
                     <h1 style="font-size: 32px; margin: 10px 0;">${currentProduct.name}</h1>
                     <div style="font-size: 28px; font-weight: 800; color: var(--accent-jungle);" id="detail-price">${currentPrice.toFixed(2)} €</div>
                     <p style="margin: 20px 0; color: var(--text-secondary); line-height: 1.6;">${currentProduct.description}</p>
