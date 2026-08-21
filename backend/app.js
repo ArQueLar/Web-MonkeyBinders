@@ -605,10 +605,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const productDetailView = document.getElementById('product-detail-view');
         if (!productDetailView) return;
 
+        const enviopersonalizado = currentProduct.name.toLowerCase() == "envio personalizado" ;
         const isXLMasterSet = currentProduct.hasXLMasterSet === true;
         const engravingOptions = Array.isArray(currentProduct.engravingOptions) ? currentProduct.engravingOptions : [];
 
-        // Binders normales: solo "3x3 (360 Bolsillos)", fijo, sin alternativa.
+        // Binders normales: solo "3x3 (360 bolsillos)", fijo, sin alternativa.
         // Binders "XL Master Set": 3x3 (360 bolsillos) / 4x3 XL (624 bolsillos, +15€ y aviso)
         let selectedSize = '3x3';
         let currentPrice = currentProduct.price;
@@ -621,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? currentProduct.images
                 : [currentProduct.frontImg, currentProduct.backImg];
 
-            const sizeOptionsHTML = isXLMasterSet ? `
+            const sizeOptionsHTML = enviopersonalizado ? "" : isXLMasterSet ? `
                 <div class="size-options">
                     <button class="size-btn ${selectedSize === '3x3' ? 'active' : ''}" id="btn-size-3x3">3x3 (360 Bolsillos)</button>
                     <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos)</button>
@@ -700,6 +701,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const priceEl = document.getElementById('detail-price');
             const qtyInput = document.getElementById('detail-qty');
+
+            if (enviopersonalizado) {
+                
+            }
 
             if (isXLMasterSet) {
                 const btn3x3 = document.getElementById('btn-size-3x3');
