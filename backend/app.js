@@ -460,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Si /api/get-products no existe todavía (no está desplegado) o falla, la web sigue
     // funcionando con normalidad solo con los productos hardcodeados.
     if (productGrid || featuredProductGrid || productDetailView) {
-        fetch('/api/get-products')
+        fetch('../api/getproducts')
             .then(r => r.json())
             .then(data => {
                 if (!data.success || !Array.isArray(data.products) || data.products.length === 0) return;
@@ -829,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.readAsDataURL(file);
             });
 
-            const response = await fetch('/api/upload-image', {
+            const response = await fetch('../api/imagen', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64 })
