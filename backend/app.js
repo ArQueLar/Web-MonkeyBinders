@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let animationFrameId = null;
 
         function updateParallax() {
-            const bgOffset = mouseXPercent * 40;
+            const bgOffset = mouseXPercent * 40; 
             storeBanner.style.backgroundPosition = `calc(50% + ${bgOffset}px) center`;
             animationFrameId = null;
         }
@@ -385,6 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- RENDERIZADO DEL CATÁLOGO (TIENDA.HTML) ---
     const productGrid = document.getElementById('product-grid');
     const featuredProductGrid = document.getElementById('featured-product-grid');
+    // Declarado aquí arriba (y no más abajo) porque el bloque de carga de Odoo, unas líneas
+    // después, ya necesita comprobar si existe esta vista antes de que llegue su propia sección.
+    const productDetailView = document.getElementById('product-detail-view');
 
     function createProductCardHTML(p) {
         const categoryLabel = p.grabadocolor ? 'GRABADO LÁSER A COLOR' : 'GRABADO LÁSER';
@@ -578,7 +581,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFiltersCountBadge();
 
     // --- LÓGICA DE DETALLE DE PRODUCTO (PRODUCTO.HTML) ---
-    const productDetailView = document.getElementById('product-detail-view');
     if (productDetailView) {
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id') || products[0].id;
