@@ -436,6 +436,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!productGrid) return;
 
         const filtered = products.filter(p => {
+            if (p.id === 'odoo-45') return false; // el envío personalizado tiene su propia sección aparte
+
             const matchTCG = (filterState.tcg === 'all') || (p.tcg === filterState.tcg);
             let matchFinish = true;
             if (filterState.finish === 'color') matchFinish = p.grabadocolor === true;
@@ -453,6 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return matchTCG && matchFinish && matchExpansion && matchTab;
         });
 
+        // Los "más vendidos" siempre primero, sin tocar el orden entre el resto
+        filtered.sort((a, b) => (b.badge === 'MÁS VENDIDO' ? 1 : 0) - (a.badge === 'MÁS VENDIDO' ? 1 : 0));
+
         if (filtered.length === 0) {
             productGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">No se encontraron binders con los filtros seleccionados.</div>`;
         } else {
@@ -460,7 +465,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Pinta la tarjeta del envío personalizado en su propia sección, separada del catálogo
+    function renderEnvioPersonalizado() {
+        const section = document.getElementById('envio-personalizado-section');
+        const container = document.getElementById('envio-personalizado-container');
+        if (!section || !container) return;
+
+        const envioProduct = products.find(p => p.id === 'odoo-45');
+        if (!envioProduct) {
+            section.style.display = 'none';
+            return;
+        }
+        container.innerHTML = createProductCardHTML(envioProduct);
+        section.style.display = '';
+    }
+
     if (productGrid) applyFilters();
+    renderEnvioPersonalizado();
 
     if (featuredProductGrid) {
         const featuredProducts = products.filter(p => p.featured === true);
@@ -481,6 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 products = products.concat(data.products);
 
                 if (productGrid) applyFilters();
+                renderEnvioPersonalizado();
                 if (featuredProductGrid) {
                     const featuredProducts = products.filter(p => p.featured === true);
                     featuredProductGrid.innerHTML = featuredProducts.map(createProductCardHTML).join('');
