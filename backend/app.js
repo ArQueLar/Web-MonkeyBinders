@@ -623,16 +623,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 : [currentProduct.frontImg, currentProduct.backImg];
 
             const sizeOptionsHTML = enviopersonalizado ? "" : isXLMasterSet ? `
-                <div class="size-options">
-                    <button class="size-btn ${selectedSize === '3x3' ? 'active' : ''}" id="btn-size-3x3">3x3 (360 Bolsillos)</button>
-                    <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos)</button>
-                </div>
-                <div id="xl-warning-box" style="display:${selectedSize === '4x3xl' ? 'block' : 'none'}; margin-top:10px; padding:10px 14px; border-radius:var(--radius-sm); background:var(--accent-error-bg); color:var(--accent-error); font-size:12.5px; line-height:1.5;">
-                    ${XL_MASTER_SET_WARNING}
-                </div>
+
+            <div class="selector-group">
+                        <label class="filter-label">TAMAÑO Y CAPACIDAD:</label>
+                        <div class="size-options">
+                            <button class="size-btn ${selectedSize === '3x3' ? 'active' : ''}" id="btn-size-3x3">3x3 (360 Bolsillos)</button>
+                            <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos)</button>
+                        </div>
+                        <div id="xl-warning-box" style="display:${selectedSize === '4x3xl' ? 'block' : 'none'}; margin-top:10px; padding:10px 14px; border-radius:var(--radius-sm); background:var(--accent-error-bg); color:var(--accent-error); font-size:12.5px; line-height:1.5;">
+                            ${XL_MASTER_SET_WARNING}
+                        </div>
+                    </div>
+                
             ` : `
-                <div class="size-options">
-                    <button class="size-btn active" id="btn-size-3x3-fixed" disabled style="cursor:default;">3x3 (360 Bolsillos)</button>
+            <div class="selector-group">
+                <label class="filter-label">TAMAÑO Y CAPACIDAD:</label>
+                    <div class="size-options">
+                        <button class="size-btn active" id="btn-size-3x3-fixed" disabled style="cursor:default;">3x3 (360 Bolsillos)</button>
+                    </div>
                 </div>
             `;
 
@@ -665,14 +673,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="product-info-panel">
                     ${currentProduct.badge ? `<span class="hero-badge">${currentProduct.badge}</span>` : ''}
                     <h1 style="font-size: 32px; margin: 10px 0;">${currentProduct.name}</h1>
-
-                    <div class="selector-group">
-                        <label class="filter-label">TAMAÑO Y CAPACIDAD:</label>
-                        ${sizeOptionsHTML}
-                    </div>
-
+                    
+                    ${sizeOptionsHTML}
                     ${engravingOptionsHTML}
-
+                    
                     <div class="selector-group">
                         <label class="filter-label">CANTIDAD:</label>
                         <div class="qty-picker">
