@@ -4,6 +4,12 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- CONFIGURACIÓN EDITABLE: AVISO DE BINDERS "XL MASTER SET" ---
+    // Este texto se muestra cuando alguien elige la opción "4x3 XL" en un binder que
+    // tenga el atributo "XL Master Set" en Odoo. Cámbialo aquí cuando quieras, sin
+    // tocar nada más del código.
+    const XL_MASTER_SET_WARNING = 'Los binders XL Master Set son bajo pedido y pueden tardar más en fabricarse. Te contactaremos para confirmar el plazo exacto antes de procesar tu pedido.';
+
     function getImgPath(path) {
         if (/^https?:\/\//i.test(path)) return path; // URLs absolutas (ej. imágenes de Odoo) se dejan tal cual
         const isSubfolder = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
@@ -207,154 +213,154 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- BASE DE DATOS DE PRODUCTOS MONKEY BINDERS ---
     let products = [
-        // {
-        //     id: 'charizard-9p',
-        //     name: 'Binder Phantasmal Flames',
-        //     category: 'ediciones',
-        //     tcg: 'pokemon',
-        //     expansion: 'megaevolutions',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 5.0,
-        //     reviewsCount: 142,
-        //     badge: 'MÁS VENDIDO',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Charizard/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Charizard/back.png',
-        //     description: 'Despierta la furia del fuego y las sombras con este binder personalizado de Vault X, con Mega Charizard X en la portada y Mega Gengar en la contraportada. Grabado con láser sobre un binder Vault X de alta resistencia.',
-        //     featured: true
-        // },
-        // {
-        //     id: 'greninja-12p',
-        //     name: 'Binder Chaos Rising',
-        //     category: 'ediciones',
-        //     tcg: 'pokemon',
-        //     expansion: 'megaevolutions',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 4.9,
-        //     reviewsCount: 88,
-        //     badge: 'NUEVO DROP',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Greninja/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Greninja/back.png',
-        //     description: 'Desata el torbellino de la batalla con Mega-Greninja dominando la portada en una demostración de poder puro y sigilo. En la contraportada, Mega-Floette vigila cada carta.'
-        // },
-        // {
-        //     id: 'mew-9p',
-        //     name: 'Binder MEW 151',
-        //     category: 'ediciones',
-        //     tcg: 'pokemon',
-        //     expansion: 'scarletviolet',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 4.9,
-        //     reviewsCount: 76,
-        //     badge: 'EDICIÓN ESPECIAL',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Mew/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Mew/back.png',
-        //     description: 'Un homenaje a la primera generación que lo empezó todo. Con Mew como protagonista en el centro y las siluetas de los 151 originales.'
-        // },
-        // {
-        //     id: 'lugia-hooh-12p',
-        //     name: 'Binder Lugia vs Ho-oh',
-        //     category: 'dsgn',
-        //     tcg: 'pokemon',
-        //     expansion: 'legends',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 5.0,
-        //     reviewsCount: 195,
-        //     badge: 'EDICIÓN LIMITADA',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/LugiaHoOh/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/LugiaHoOh/back.png',
-        //     description: 'Desata el poder ancestral del cielo y la tormenta con Lugia y Ho-Oh dominando la portada en un duelo eterno.'
-        // },
-        // {
-        //     id: 'psyduck-9p',
-        //     name: 'Binder Psyduck',
-        //     category: 'dsgn',
-        //     tcg: 'pokemon',
-        //     expansion: '151',
-        //     grabadocolor: false,
-        //     price: 45.45,
-        //     price12p: 50.45,
-        //     rating: 5.0,
-        //     reviewsCount: 64,
-        //     badge: 'POPULAR',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Psyduck/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Psyduck/back.png',
-        //     description: 'Da un toque de humor y estilo a tu colección con este binder personalizado con grabado láser de Psyduck.'
-        // },
-        // {
-        //     id: 'lucario-12p',
-        //     name: 'Binder Lucario Megaevolutions',
-        //     category: 'ediciones',
-        //     tcg: 'pokemon',
-        //     expansion: 'megaevolutions',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 4.9,
-        //     reviewsCount: 110,
-        //     badge: 'MEJOR VALORADO',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Lucario/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Lucario/back.png',
-        //     description: 'Mega Lucario en la portada y Mega Venusaur en la contraportada. Una pieza poderosa para verdaderos coleccionistas.',
-        //     featured: true
-        // },
-        // {
-        //     id: 'pitch-black-12p',
-        //     name: 'Binder Pitch Black',
-        //     category: 'ediciones',
-        //     tcg: 'pokemon',
-        //     expansion: 'megaevolutions',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 4.9,
-        //     reviewsCount: 320,
-        //     badge: 'NUEVO DROP',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Pitch Black/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Pitch Black/back.png',
-        //     description: 'Lleva tu colección al lado más oscuro con este binder personalizado de la colección Pitch Black, protagonizado por Mega Darkrai.',
-        //     featured: true
-        // },
-        // {
-        //     id: 'kanto-151-9p',
-        //     name: 'Binder MEW 151 Color',
-        //     category: 'ediciones',
-        //     tcg: 'pokemon',
-        //     expansion: 'scarletviolet',
-        //     grabadocolor: true,
-        //     price: 53.72,
-        //     price12p: 58.72,
-        //     rating: 5.0,
-        //     reviewsCount: 215,
-        //     badge: 'SET 151 - A COLOR',
-        //     frontImg: 'assets/Cosas Web/ Fotos Binders Color/151/front2.png',
-        //     backImg: 'assets/Cosas Web/ Fotos Binders Color/151/back2.png',
-        //     description: 'Edición exclusiva con grabado láser ultravioleta a todo color sobre la cubierta del binder.',
-        //     featured: true
-        // },
-        // {
-        //     id: 'mtg-spiderman-12p',
-        //     name: 'Binder Spiderman Magic',
-        //     category: 'ediciones',
-        //     tcg: 'magic',
-        //     expansion: 'marvel',
-        //     grabadocolor: false,
-        //     price: 49.58,
-        //     price12p: 54.58,
-        //     rating: 4.9,
-        //     reviewsCount: 45,
-        //     badge: 'MAGIC MTG',
-        //     frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Spiderman/front.png',
-        //     backImg: 'assets/Cosas Web/Fotos Binders/PNG/Spiderman/back.png',
-        //     description: 'Diseño exclusivo grabado a láser para los jugadores y coleccionistas de Magic The Gathering.'
-        // }
+        {
+            id: 'charizard-9p',
+            name: 'Binder Phantasmal Flames',
+            category: 'ediciones',
+            tcg: 'pokemon',
+            expansion: 'megaevolutions',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 5.0,
+            reviewsCount: 142,
+            badge: 'MÁS VENDIDO',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Charizard/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Charizard/back.png',
+            description: 'Despierta la furia del fuego y las sombras con este binder personalizado de Vault X, con Mega Charizard X en la portada y Mega Gengar en la contraportada. Grabado con láser sobre un binder Vault X de alta resistencia.',
+            featured: true
+        },
+        {
+            id: 'greninja-12p',
+            name: 'Binder Chaos Rising',
+            category: 'ediciones',
+            tcg: 'pokemon',
+            expansion: 'megaevolutions',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 4.9,
+            reviewsCount: 88,
+            badge: 'NUEVO DROP',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Greninja/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Greninja/back.png',
+            description: 'Desata el torbellino de la batalla con Mega-Greninja dominando la portada en una demostración de poder puro y sigilo. En la contraportada, Mega-Floette vigila cada carta.'
+        },
+        {
+            id: 'mew-9p',
+            name: 'Binder MEW 151',
+            category: 'ediciones',
+            tcg: 'pokemon',
+            expansion: 'scarletviolet',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 4.9,
+            reviewsCount: 76,
+            badge: 'EDICIÓN ESPECIAL',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Mew/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Mew/back.png',
+            description: 'Un homenaje a la primera generación que lo empezó todo. Con Mew como protagonista en el centro y las siluetas de los 151 originales.'
+        },
+        {
+            id: 'lugia-hooh-12p',
+            name: 'Binder Lugia vs Ho-oh',
+            category: 'dsgn',
+            tcg: 'pokemon',
+            expansion: 'legends',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 5.0,
+            reviewsCount: 195,
+            badge: 'EDICIÓN LIMITADA',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/LugiaHoOh/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/LugiaHoOh/back.png',
+            description: 'Desata el poder ancestral del cielo y la tormenta con Lugia y Ho-Oh dominando la portada en un duelo eterno.'
+        },
+        {
+            id: 'psyduck-9p',
+            name: 'Binder Psyduck',
+            category: 'dsgn',
+            tcg: 'pokemon',
+            expansion: '151',
+            grabadocolor: false,
+            price: 45.45,
+            price12p: 50.45,
+            rating: 5.0,
+            reviewsCount: 64,
+            badge: 'POPULAR',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Psyduck/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Psyduck/back.png',
+            description: 'Da un toque de humor y estilo a tu colección con este binder personalizado con grabado láser de Psyduck.'
+        },
+        {
+            id: 'lucario-12p',
+            name: 'Binder Lucario Megaevolutions',
+            category: 'ediciones',
+            tcg: 'pokemon',
+            expansion: 'megaevolutions',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 4.9,
+            reviewsCount: 110,
+            badge: 'MEJOR VALORADO',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Lucario/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Lucario/back.png',
+            description: 'Mega Lucario en la portada y Mega Venusaur en la contraportada. Una pieza poderosa para verdaderos coleccionistas.',
+            featured: true
+        },
+        {
+            id: 'pitch-black-12p',
+            name: 'Binder Pitch Black',
+            category: 'ediciones',
+            tcg: 'pokemon',
+            expansion: 'megaevolutions',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 4.9,
+            reviewsCount: 320,
+            badge: 'NUEVO DROP',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Pitch Black/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Pitch Black/back.png',
+            description: 'Lleva tu colección al lado más oscuro con este binder personalizado de la colección Pitch Black, protagonizado por Mega Darkrai.',
+            featured: true
+        },
+        {
+            id: 'kanto-151-9p',
+            name: 'Binder MEW 151 Color',
+            category: 'ediciones',
+            tcg: 'pokemon',
+            expansion: 'scarletviolet',
+            grabadocolor: true,
+            price: 53.72,
+            price12p: 58.72,
+            rating: 5.0,
+            reviewsCount: 215,
+            badge: 'SET 151 - A COLOR',
+            frontImg: 'assets/Cosas Web/ Fotos Binders Color/151/front2.png',
+            backImg: 'assets/Cosas Web/ Fotos Binders Color/151/back2.png',
+            description: 'Edición exclusiva con grabado láser ultravioleta a todo color sobre la cubierta del binder.',
+            featured: true
+        },
+        {
+            id: 'mtg-spiderman-12p',
+            name: 'Binder Spiderman Magic',
+            category: 'ediciones',
+            tcg: 'magic',
+            expansion: 'marvel',
+            grabadocolor: false,
+            price: 49.58,
+            price12p: 54.58,
+            rating: 4.9,
+            reviewsCount: 45,
+            badge: 'MAGIC MTG',
+            frontImg: 'assets/Cosas Web/Fotos Binders/PNG/Spiderman/front.png',
+            backImg: 'assets/Cosas Web/Fotos Binders/PNG/Spiderman/back.png',
+            description: 'Diseño exclusivo grabado a láser para los jugadores y coleccionistas de Magic The Gathering.'
+        }
     ];
 
     // --- ESTADO GLOBAL DE FILTROS ---
@@ -599,10 +605,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const productDetailView = document.getElementById('product-detail-view');
         if (!productDetailView) return;
 
-        let selectedSize = '9p';
+        const isXLMasterSet = currentProduct.hasXLMasterSet === true;
+        const engravingOptions = Array.isArray(currentProduct.engravingOptions) ? currentProduct.engravingOptions : [];
+
+        // Binders normales: 9 Bolsillos / 12 Bolsillos (comportamiento de siempre)
+        // Binders "XL Master Set": 3x3 (360 bolsillos) / 4x3 XL (624 bolsillos, +15€ y aviso)
+        let selectedSize = isXLMasterSet ? '3x3' : '9p';
         let currentPrice = currentProduct.price;
+        // Opción de grabado seleccionada (solo informativa, no afecta al precio). Por defecto, la primera.
+        let selectedEngravingOption = engravingOptions[0] || null;
 
         function renderDetailView() {
+            const sizeOptionsHTML = isXLMasterSet ? `
+                <div class="size-options">
+                    <button class="size-btn ${selectedSize === '3x3' ? 'active' : ''}" id="btn-size-3x3">3x3 (360 Bolsillos)</button>
+                    <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos)</button>
+                </div>
+                <div id="xl-warning-box" style="display:${selectedSize === '4x3xl' ? 'block' : 'none'}; margin-top:10px; padding:10px 14px; border-radius:var(--radius-sm); background:var(--accent-error-bg); color:var(--accent-error); font-size:12.5px; line-height:1.5;">
+                    ${XL_MASTER_SET_WARNING}
+                </div>
+            ` : `
+                <div class="size-options">
+                    <button class="size-btn ${selectedSize === '9p' ? 'active' : ''}" id="btn-size-9p">9 Bolsillos (360 Cartas)</button>
+                    <button class="size-btn ${selectedSize === '12p' ? 'active' : ''}" id="btn-size-12p">12 Bolsillos (480 Cartas)</button>
+                </div>
+            `;
+
+            const engravingOptionsHTML = engravingOptions.length > 0 ? `
+                <div class="selector-group">
+                    <label class="filter-label">OPCIONES ADICIONALES:</label>
+                    <div class="size-options" id="engraving-options-group" style="flex-wrap:wrap;">
+                        ${engravingOptions.map(opt => `
+                            <button type="button" class="size-btn engraving-option-btn ${opt === selectedEngravingOption ? 'active' : ''}" data-option="${opt}" style="flex:none; padding:8px 14px;">${opt}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '';
+
             productDetailView.innerHTML = `
                 <div style="grid-column: 1 / -1; margin-bottom: -10px;">
                     <a href="tienda.html" class="btn-secondary" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px;">
@@ -625,11 +664,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="selector-group">
                         <label class="filter-label">TAMAÑO Y CAPACIDAD:</label>
-                        <div class="size-options">
-                            <button class="size-btn ${selectedSize === '9p' ? 'active' : ''}" id="btn-size-9p">9 Bolsillos (360 Cartas)</button>
-                            <button class="size-btn ${selectedSize === '12p' ? 'active' : ''}" id="btn-size-12p">12 Bolsillos (480 Cartas)</button>
-                        </div>
+                        ${sizeOptionsHTML}
                     </div>
+
+                    ${engravingOptionsHTML}
 
                     <div class="selector-group">
                         <label class="filter-label">CANTIDAD:</label>
@@ -646,25 +684,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            const btn9p = document.getElementById('btn-size-9p');
-            const btn12p = document.getElementById('btn-size-12p');
             const priceEl = document.getElementById('detail-price');
             const qtyInput = document.getElementById('detail-qty');
 
-            btn9p.addEventListener('click', () => {
-                selectedSize = '9p';
-                currentPrice = currentProduct.price;
-                btn9p.classList.add('active');
-                btn12p.classList.remove('active');
-                priceEl.textContent = `${currentPrice.toFixed(2)} €`;
-            });
+            if (isXLMasterSet) {
+                const btn3x3 = document.getElementById('btn-size-3x3');
+                const btn4x3xl = document.getElementById('btn-size-4x3xl');
+                const warningBox = document.getElementById('xl-warning-box');
 
-            btn12p.addEventListener('click', () => {
-                selectedSize = '12p';
-                currentPrice = currentProduct.price12p || (currentProduct.price + 5);
-                btn12p.classList.add('active');
-                btn9p.classList.remove('active');
-                priceEl.textContent = `${currentPrice.toFixed(2)} €`;
+                btn3x3.addEventListener('click', () => {
+                    selectedSize = '3x3';
+                    currentPrice = currentProduct.price;
+                    btn3x3.classList.add('active');
+                    btn4x3xl.classList.remove('active');
+                    warningBox.style.display = 'none';
+                    priceEl.textContent = `${currentPrice.toFixed(2)} €`;
+                });
+
+                btn4x3xl.addEventListener('click', () => {
+                    selectedSize = '4x3xl';
+                    currentPrice = currentProduct.price + 15;
+                    btn4x3xl.classList.add('active');
+                    btn3x3.classList.remove('active');
+                    warningBox.style.display = 'block';
+                    priceEl.textContent = `${currentPrice.toFixed(2)} €`;
+                });
+            } else {
+                const btn9p = document.getElementById('btn-size-9p');
+                const btn12p = document.getElementById('btn-size-12p');
+
+                btn9p.addEventListener('click', () => {
+                    selectedSize = '9p';
+                    currentPrice = currentProduct.price;
+                    btn9p.classList.add('active');
+                    btn12p.classList.remove('active');
+                    priceEl.textContent = `${currentPrice.toFixed(2)} €`;
+                });
+
+                btn12p.addEventListener('click', () => {
+                    selectedSize = '12p';
+                    currentPrice = currentProduct.price12p || (currentProduct.price + 5);
+                    btn12p.classList.add('active');
+                    btn9p.classList.remove('active');
+                    priceEl.textContent = `${currentPrice.toFixed(2)} €`;
+                });
+            }
+
+            // Botones de "Opciones adicionales" (solo informativos, no tocan el precio)
+            const engravingBtns = document.querySelectorAll('.engraving-option-btn');
+            engravingBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    engravingBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedEngravingOption = btn.dataset.option;
+                });
             });
 
             document.getElementById('qty-minus').addEventListener('click', () => {
@@ -679,11 +752,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('btn-add-detail').addEventListener('click', () => {
                 const qty = parseInt(qtyInput.value);
+                const sizeLabel = isXLMasterSet
+                    ? (selectedSize === '3x3' ? '3x3' : '4x3 XL')
+                    : (selectedSize === '9p' ? '9 Bolsillos' : '12 Bolsillos');
+                const engravingLabel = selectedEngravingOption ? `, ${selectedEngravingOption}` : '';
                 const customProduct = {
                     ...currentProduct,
-                    name: `${currentProduct.name} (${selectedSize === '9p' ? '9 Bolsillos' : '12 Bolsillos'})`,
+                    name: `${currentProduct.name} (${sizeLabel}${engravingLabel})`,
                     price: currentPrice,
-                    id: `${currentProduct.id}-${selectedSize}`
+                    id: `${currentProduct.id}-${selectedSize}-${selectedEngravingOption || 'sinopcion'}`
                 };
                 addToCartCustom(customProduct, qty);
             });

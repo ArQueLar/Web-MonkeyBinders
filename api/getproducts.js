@@ -57,7 +57,7 @@ export default async function handler(req, res) {
                 {
                     fields: [
                         'id', 'name', 'list_price', 'description_sale', 'description_ecommerce',
-                        'public_categ_ids', 'product_template_image_ids'
+                        'public_categ_ids', 'product_template_image_ids', 'attribute_line_ids'
                     ],
                     limit: 200
                 }
@@ -66,6 +66,47 @@ export default async function handler(req, res) {
 
         const categNameById = {};
         categories.forEach(c => { categNameById[c.id] = c.name; });
+
+        // Leemos los valores del atributo "Opciones adicionales" de cada producto.
+        // "XL Master Set" controla el selector de tamaño 3x3 / 4x3 XL (ver más abajo).
+        // El resto de valores ("Normal", "Sin logo de colección", etc.) son solo
+        // informativos para el grabado — se muestran como botones aparte, sin tocar el precio.
+        const allLineIds = [...new Set(rawProducts.flatMap(p => p.attribute_line_ids || []))];
+        let hasXLByProductId = {};
+        let engravingOptionsByProductId = {};
+
+        if (allLineIds.length > 0) {
+            const attributeLines = await callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'product.template.attribute.line', 'read',
+                [allLineIds],
+                { fields: ['product_tmpl_id', 'value_ids'] }
+            ]);
+
+            const allValueIds = [...new Set(attributeLines.flatMap(l => l.value_ids || []))];
+            const attributeValues = allValueIds.length > 0 ? await callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'product.attribute.value', 'read',
+                [allValueIds],
+                { fields: ['name'] }
+            ]) : [];
+
+            const valueNameById = {};
+            attributeValues.forEach(v => { valueNameById[v.id] = v.name; });
+
+            attributeLines.forEach(line => {
+                const productId = Array.isArray(line.product_tmpl_id) ? line.product_tmpl_id[0] : line.product_tmpl_id;
+                const names = (line.value_ids || []).map(id => valueNameById[id]).filter(Boolean);
+                if (names.includes('XL Master Set')) {
+                    hasXLByProductId[productId] = true;
+                }
+                // Todos los valores menos "XL Master Set" (ese ya tiene su propio selector de tamaño)
+                const engravingNames = names.filter(n => n !== 'XL Master Set');
+                if (engravingNames.length > 0) {
+                    engravingOptionsByProductId[productId] = engravingNames;
+                }
+            });
+        }
 
         // Traducimos cada producto de Odoo al formato que ya usa la web
         const products = rawProducts.map(p => {
@@ -110,7 +151,9 @@ export default async function handler(req, res) {
                 frontImg,
                 backImg,
                 description: p.description_ecommerce || p.description_sale || '',
-                featured: false
+                featured: false,
+                hasXLMasterSet: hasXLByProductId[p.id] === true,
+                engravingOptions: engravingOptionsByProductId[p.id] || []
             };
         });
 
