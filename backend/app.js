@@ -622,6 +622,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? currentProduct.images
                 : [currentProduct.frontImg, currentProduct.backImg];
 
+            const cantidadHTML = enviopersonalizado ? "" : `
+            <div class="selector-group">
+                        <label class="filter-label">CANTIDAD:</label>
+                        <div class="qty-picker">
+                            <button class="qty-btn" id="qty-minus">-</button>
+                            <input type="number" id="detail-qty" value="1" min="1" readonly>
+                            <button class="qty-btn" id="qty-plus">+</button>
+                        </div>
+                    </div>`
+
             const sizeOptionsHTML = enviopersonalizado ? "" : isXLMasterSet ? `
 
             <div class="selector-group">
@@ -676,15 +686,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     ${sizeOptionsHTML}
                     ${engravingOptionsHTML}
-                    
-                    <div class="selector-group">
-                        <label class="filter-label">CANTIDAD:</label>
-                        <div class="qty-picker">
-                            <button class="qty-btn" id="qty-minus">-</button>
-                            <input type="number" id="detail-qty" value="1" min="1" readonly>
-                            <button class="qty-btn" id="qty-plus">+</button>
-                        </div>
-                    </div>
+
+                    ${cantidadHTML}
 
                     <div style="font-size: 28px; font-weight: 800; color: var(--accent-jungle);" id="detail-price">${currentPrice.toFixed(2)} €</div>
 
