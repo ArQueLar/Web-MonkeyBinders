@@ -57,7 +57,8 @@ export default async function handler(req, res) {
                 {
                     fields: [
                         'id', 'name', 'list_price', 'description_sale', 'description_ecommerce',
-                        'public_categ_ids', 'product_template_image_ids', 'attribute_line_ids', 'taxes_id'
+                        'public_categ_ids', 'product_template_image_ids', 'attribute_line_ids', 'taxes_id',
+                        'create_date'
                     ],
                     limit: 200
                 }
@@ -192,11 +193,12 @@ export default async function handler(req, res) {
         });
 
         // --- MÁS VENDIDOS (según pedidos de venta CONFIRMADOS reales en Odoo) ---
-        // Marca automáticamente los top N productos como "featured" (salen en la Colección de
-        // Élite del inicio) y les pone el badge "MÁS VENDIDO" en la tarjeta. Si algo falla aquí
+        // Marca automáticamente los top N productos como "featured" (salen en la sección del
+        // inicio) y les pone el badge "MÁS VENDIDO" en la tarjeta. Si algo falla aquí
         // (ej. el usuario de integración no tiene permiso sobre Ventas), no rompe el resto de
         // la tienda: simplemente no se marca ningún best-seller esa vez.
-        const BEST_SELLERS_COUNT = 5;
+        const BEST_SELLERS_COUNT = 2;
+        let topSellerTmplIds = [];
         try {
             const salesGrouped = await callOdoo('object', 'execute_kw', [
                 ODOO_DB, uid, ODOO_API_KEY,
@@ -228,7 +230,7 @@ export default async function handler(req, res) {
                     soldQtyByTmplId[tmplId] = (soldQtyByTmplId[tmplId] || 0) + (g.product_uom_qty || 0);
                 });
 
-                const topSellerTmplIds = Object.entries(soldQtyByTmplId)
+                topSellerTmplIds = Object.entries(soldQtyByTmplId)
                     .filter(([tmplId]) => Number(tmplId) !== 45) // nunca el "envío personalizado"
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, BEST_SELLERS_COUNT)
@@ -246,6 +248,25 @@ export default async function handler(req, res) {
             // Silencioso a propósito: mejor mostrar la tienda sin best-sellers marcados
             // que romper toda la carga de productos por esto.
         }
+
+        // --- MÁS RECIENTES (últimos productos dados de alta en Odoo) ---
+        // Coge los 2 productos más nuevos (por fecha de creación) que NO sean ya un
+        // "más vendido" (para no repetir el mismo producto dos veces en la sección) ni el
+        // envío personalizado. Les pone el badge "NUEVO".
+        const NEWEST_COUNT = 2;
+        const newestCandidates = rawProducts
+            .filter(p => p.id !== 45 && !topSellerTmplIds.includes(p.id))
+            .sort((a, b) => new Date(b.create_date) - new Date(a.create_date))
+            .slice(0, NEWEST_COUNT)
+            .map(p => p.id);
+
+        products.forEach(prod => {
+            const tmplId = Number(String(prod.id).replace('odoo-', ''));
+            if (newestCandidates.includes(tmplId)) {
+                prod.featured = true;
+                prod.badge = 'NUEVO';
+            }
+        });
 
         // Caché en el borde de Vercel: sirve la misma respuesta hasta 5 min sin volver a
         // preguntarle a Odoo, y sigue sirviendo la versión en caché mientras revalida en
