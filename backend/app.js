@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Este texto se muestra cuando alguien elige la opción "4x3 XL" en un binder que
     // tenga el atributo "XL Master Set" en Odoo. Cámbialo aquí cuando quieras, sin
     // tocar nada más del código.
-    const XL_MASTER_SET_WARNING = 'Los binders XL Master Set son bajo pedido y pueden tardar más en fabricarse. Te contactaremos para confirmar el plazo exacto antes de procesar tu pedido.';
+    const XL_MASTER_SET_WARNING = 'Los binders XL Master Set son bajo pedido y pueden tardar de 2 a 3 semanas en enviarse.';
 
     function getImgPath(path) {
         if (/^https?:\/\//i.test(path)) return path; // URLs absolutas (ej. imágenes de Odoo) se dejan tal cual
@@ -608,9 +608,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const isXLMasterSet = currentProduct.hasXLMasterSet === true;
         const engravingOptions = Array.isArray(currentProduct.engravingOptions) ? currentProduct.engravingOptions : [];
 
-        // Binders normales: 9 Bolsillos / 12 Bolsillos (comportamiento de siempre)
+        // Binders normales: solo "3x3 (360 Bolsillos)", fijo, sin alternativa.
         // Binders "XL Master Set": 3x3 (360 bolsillos) / 4x3 XL (624 bolsillos, +15€ y aviso)
-        let selectedSize = isXLMasterSet ? '3x3' : '9p';
+        let selectedSize = '3x3';
         let currentPrice = currentProduct.price;
         // Opción de grabado seleccionada (solo informativa, no afecta al precio). Por defecto, la primera.
         let selectedEngravingOption = engravingOptions[0] || null;
@@ -626,8 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             ` : `
                 <div class="size-options">
-                    <button class="size-btn ${selectedSize === '9p' ? 'active' : ''}" id="btn-size-9p">9 Bolsillos (360 Cartas)</button>
-                    <button class="size-btn ${selectedSize === '12p' ? 'active' : ''}" id="btn-size-12p">12 Bolsillos (480 Cartas)</button>
+                    <button class="size-btn active" id="btn-size-3x3-fixed" disabled style="cursor:default;">3x3 (360 Bolsillos)</button>
                 </div>
             `;
 
@@ -709,26 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     warningBox.style.display = 'block';
                     priceEl.textContent = `${currentPrice.toFixed(2)} €`;
                 });
-            } else {
-                const btn9p = document.getElementById('btn-size-9p');
-                const btn12p = document.getElementById('btn-size-12p');
-
-                btn9p.addEventListener('click', () => {
-                    selectedSize = '9p';
-                    currentPrice = currentProduct.price;
-                    btn9p.classList.add('active');
-                    btn12p.classList.remove('active');
-                    priceEl.textContent = `${currentPrice.toFixed(2)} €`;
-                });
-
-                btn12p.addEventListener('click', () => {
-                    selectedSize = '12p';
-                    currentPrice = currentProduct.price12p || (currentProduct.price + 5);
-                    btn12p.classList.add('active');
-                    btn9p.classList.remove('active');
-                    priceEl.textContent = `${currentPrice.toFixed(2)} €`;
-                });
             }
+            // Si no es XL Master Set, el tamaño es fijo (3x3, 360 Bolsillos) — no hace falta ningún listener.
 
             // Botones de "Opciones adicionales" (solo informativos, no tocan el precio)
             const engravingBtns = document.querySelectorAll('.engraving-option-btn');
@@ -754,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const qty = parseInt(qtyInput.value);
                 const sizeLabel = isXLMasterSet
                     ? (selectedSize === '3x3' ? '3x3' : '4x3 XL')
-                    : (selectedSize === '9p' ? '9 Bolsillos' : '12 Bolsillos');
+                    : '3x3';
                 const engravingLabel = selectedEngravingOption ? `, ${selectedEngravingOption}` : '';
                 const customProduct = {
                     ...currentProduct,
