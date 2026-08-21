@@ -187,6 +187,7 @@ export default async function handler(req, res) {
                 images,
                 description: p.description_ecommerce || p.description_sale || '',
                 featured: false,
+                services: p.id === 45, // el envío personalizado se muestra como "SERVICIO" en su tarjeta, no como grabado
                 hasXLMasterSet: hasXLByProductId[p.id] === true,
                 engravingOptions: engravingOptionsByProductId[p.id] || []
             };
@@ -279,16 +280,7 @@ export default async function handler(req, res) {
         // es la optimización que más rendimiento da a coste cero.
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
 
-        return res.status(200).json({
-            success: true,
-            products,
-            _debug: {
-                topSellerTmplIds,
-                matchedBestSellersCount: products.filter(p => p.badge === 'MÁS VENDIDO').map(p => p.id),
-                newestMarked: products.filter(p => p.badge === 'NUEVO').map(p => p.id),
-                totalFeatured: products.filter(p => p.featured === true).length
-            }
-        });
+        return res.status(200).json({ success: true, products });
     } catch (err) {
         return res.status(500).json({ success: false, error: 'Error interno del servidor', detail: err.message });
     }

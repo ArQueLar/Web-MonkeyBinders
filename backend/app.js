@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createProductCardHTML(p) {
         const categoryLabel = p.services
-            ? 'SERVICIOS'
+            ? 'SERVICIO'
             : p.grabadocolor
                 ? 'GRABADO LÁSER A COLOR'
                 : 'GRABADO LÁSER';
