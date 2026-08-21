@@ -57,7 +57,7 @@ export default async function handler(req, res) {
                 {
                     fields: [
                         'id', 'name', 'list_price', 'description_sale', 'description_ecommerce',
-                        'public_categ_ids', 'product_template_image_ids', 'attribute_line_ids'
+                        'public_categ_ids', 'product_template_image_ids', 'attribute_line_ids', 'taxes_id'
                     ],
                     limit: 200
                 }
@@ -108,6 +108,32 @@ export default async function handler(req, res) {
             });
         }
 
+        // Leemos el % de IVA de cada impuesto usado en los productos, para calcular el
+        // precio final CON IVA incluido (list_price de Odoo viene siempre SIN IVA).
+        const DEFAULT_TAX_RATE = 21; // IVA general en España, solo se usa si un producto no tiene impuesto configurado en Odoo
+        const allTaxIds = [...new Set(rawProducts.flatMap(p => p.taxes_id || []))];
+        let taxRateById = {};
+
+        if (allTaxIds.length > 0) {
+            const taxes = await callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'account.tax', 'read',
+                [allTaxIds],
+                { fields: ['amount', 'amount_type'] }
+            ]);
+            taxes.forEach(t => {
+                // Solo sabemos calcular impuestos de tipo "porcentaje" (lo habitual en España). Si algún
+                // día usáis un impuesto de tipo fijo/grupo, ese producto usará el IVA por defecto de arriba.
+                if (t.amount_type === 'percent') taxRateById[t.id] = t.amount;
+            });
+        }
+
+        function taxRateForProduct(p) {
+            const rates = (p.taxes_id || []).map(id => taxRateById[id]).filter(r => typeof r === 'number');
+            if (rates.length === 0) return DEFAULT_TAX_RATE;
+            return rates.reduce((sum, r) => sum + r, 0); // suma si tuviera varios impuestos aplicados
+        }
+
         // Traducimos cada producto de Odoo al formato que ya usa la web
         const products = rawProducts.map(p => {
             const categNames = (p.public_categ_ids || []).map(id => categNameById[id]).filter(Boolean);
@@ -136,6 +162,10 @@ export default async function handler(req, res) {
                 ? `${ODOO_URL}/web/image/product.image/${extraImageId}/image_512`
                 : frontImg;
 
+            // list_price de Odoo es SIN IVA — aplicamos el % real configurado en el producto
+            const taxRate = taxRateForProduct(p);
+            const priceWithTax = Math.round(p.list_price * (1 + taxRate / 100) * 100) / 100;
+
             return {
                 id: `odoo-${p.id}`,
                 name: p.name,
@@ -143,8 +173,8 @@ export default async function handler(req, res) {
                 tcg,
                 expansion,
                 grabadocolor,
-                price: p.list_price,
-                price12p: p.list_price, // Odoo no tiene todavía un precio distinto para 12 bolsillos
+                price: priceWithTax,
+                price12p: priceWithTax, // Odoo no tiene todavía un precio distinto para 12 bolsillos
                 rating: null,           // Odoo no tiene valoraciones conectadas todavía
                 reviewsCount: 0,
                 badge: null,

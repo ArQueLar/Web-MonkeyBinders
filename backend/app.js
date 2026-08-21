@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sizeOptionsHTML = isXLMasterSet ? `
                 <div class="size-options">
                     <button class="size-btn ${selectedSize === '3x3' ? 'active' : ''}" id="btn-size-3x3">3x3 (360 Bolsillos)</button>
-                    <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos)</button>
+                    <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos) +15€</button>
                 </div>
                 <div id="xl-warning-box" style="display:${selectedSize === '4x3xl' ? 'block' : 'none'}; margin-top:10px; padding:10px 14px; border-radius:var(--radius-sm); background:var(--accent-error-bg); color:var(--accent-error); font-size:12.5px; line-height:1.5;">
                     ${XL_MASTER_SET_WARNING}
