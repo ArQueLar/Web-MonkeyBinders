@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Este texto se muestra cuando alguien elige la opción "4x3 XL" en un binder que
     // tenga el atributo "XL Master Set" en Odoo. Cámbialo aquí cuando quieras, sin
     // tocar nada más del código.
-    const XL_MASTER_SET_WARNING = 'Los binders XL Master Set son bajo pedido y pueden tardar de 2 a 3 semanas en enviarse.';
+    const XL_MASTER_SET_WARNING = 'Los binders XL Master Set son bajo pedido y pueden tardar más en fabricarse. Te contactaremos para confirmar el plazo exacto antes de procesar tu pedido.';
 
     function getImgPath(path) {
         if (/^https?:\/\//i.test(path)) return path; // URLs absolutas (ej. imágenes de Odoo) se dejan tal cual
@@ -616,10 +616,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let selectedEngravingOption = engravingOptions[0] || null;
 
         function renderDetailView() {
+            // Galería completa si el producto la trae (ej. Odoo con 3+ fotos); si no, front/back de siempre.
+            const galleryImages = Array.isArray(currentProduct.images) && currentProduct.images.length > 0
+                ? currentProduct.images
+                : [currentProduct.frontImg, currentProduct.backImg];
+
             const sizeOptionsHTML = isXLMasterSet ? `
                 <div class="size-options">
                     <button class="size-btn ${selectedSize === '3x3' ? 'active' : ''}" id="btn-size-3x3">3x3 (360 Bolsillos)</button>
-                    <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos) +15€</button>
+                    <button class="size-btn ${selectedSize === '4x3xl' ? 'active' : ''}" id="btn-size-4x3xl">4x3 XL (624 Bolsillos)</button>
                 </div>
                 <div id="xl-warning-box" style="display:${selectedSize === '4x3xl' ? 'block' : 'none'}; margin-top:10px; padding:10px 14px; border-radius:var(--radius-sm); background:var(--accent-error-bg); color:var(--accent-error); font-size:12.5px; line-height:1.5;">
                     ${XL_MASTER_SET_WARNING}
@@ -648,10 +653,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     </a>
                 </div>
                 <div class="product-gallery">
-                    <img src="${getImgPath(currentProduct.frontImg)}" id="main-product-img" class="product-main-img" alt="${currentProduct.name}">
+                    <img src="${getImgPath(galleryImages[0])}" id="main-product-img" class="product-main-img" alt="${currentProduct.name}">
                     <div class="gallery-thumbs">
-                        <img src="${getImgPath(currentProduct.frontImg)}" class="thumb-img active" onclick="changeDetailImg(this, '${getImgPath(currentProduct.frontImg)}')">
-                        <img src="${getImgPath(currentProduct.backImg)}" class="thumb-img" onclick="changeDetailImg(this, '${getImgPath(currentProduct.backImg)}')">
+                        ${galleryImages.map((img, i) => `
+                            <img src="${getImgPath(img)}" class="thumb-img ${i === 0 ? 'active' : ''}" onclick="changeDetailImg(this, '${getImgPath(img)}')">
+                        `).join('')}
                     </div>
                 </div>
 
@@ -889,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.readAsDataURL(file);
             });
 
-            const response = await fetch('../api/imagen', {
+            const response = await fetch('../api/image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64 })
