@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${currentProduct.badge ? `<span class="hero-badge">${currentProduct.badge}</span>` : ''}
                     <h1 style="font-size: 32px; margin: 10px 0;">${currentProduct.name}</h1>
                     <div style="font-size: 28px; font-weight: 800; color: var(--accent-jungle);" id="detail-price">${currentPrice.toFixed(2)} €</div>
-                    <p style="margin: 20px 0; color: var(--text-secondary); line-height: 1.6;">${currentProduct.description}</p>
+                    <div style="margin: 20px 0; color: var(--text-secondary); line-height: 1.6;">${currentProduct.description}</div>
 
                     <div class="selector-group">
                         <label class="filter-label">TAMAÑO Y CAPACIDAD:</label>

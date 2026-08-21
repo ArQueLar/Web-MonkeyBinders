@@ -56,7 +56,7 @@ export default async function handler(req, res) {
                 [[['sale_ok', '=', true], ['website_published', '=', true]]],
                 {
                     fields: [
-                        'id', 'name', 'list_price', 'description_sale',
+                        'id', 'name', 'list_price', 'description_sale', 'description_ecommerce',
                         'public_categ_ids', 'product_template_image_ids'
                     ],
                     limit: 200
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
                 badge: null,
                 frontImg,
                 backImg,
-                description: p.description_sale || '',
+                description: p.description_ecommerce || p.description_sale || '',
                 featured: false
             };
         });
