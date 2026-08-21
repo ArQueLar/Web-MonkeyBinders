@@ -192,11 +192,12 @@ export default async function handler(req, res) {
             };
         });
 
-        // --- MÁS VENDIDOS (según pedidos de venta CONFIRMADOS reales en Odoo) ---
-        // Marca automáticamente los top N productos como "featured" (salen en la sección del
-        // inicio) y les pone el badge "MÁS VENDIDO" en la tarjeta. Si algo falla aquí
-        // (ej. el usuario de integración no tiene permiso sobre Ventas), no rompe el resto de
-        // la tienda: simplemente no se marca ningún best-seller esa vez.
+        // --- MÁS VENDIDOS + MÁS RECIENTES (sección de inicio) ---
+        // Siempre intenta completar TOTAL_HOME_COUNT productos: primero los más vendidos según
+        // ventas reales en Odoo (hasta BEST_SELLERS_COUNT), y con los huecos que queden libres,
+        // los productos más recientes — así, si hay pocas ventas registradas, el hueco lo cubren
+        // más "NUEVO" en vez de quedarse corto o mostrar algo sin sello.
+        const TOTAL_HOME_COUNT = 4;
         const BEST_SELLERS_COUNT = 2;
         let topSellerTmplIds = [];
         try {
@@ -249,35 +250,24 @@ export default async function handler(req, res) {
             // que romper toda la carga de productos por esto.
         }
 
-        // --- MÁS RECIENTES (últimos productos dados de alta en Odoo) ---
-        // Coge los 2 productos más nuevos (por fecha de creación) que NO sean ya un
-        // "más vendido" (para no repetir el mismo producto dos veces en la sección) ni el
-        // envío personalizado. Les pone el badge "NUEVO".
-        const NEWEST_COUNT = 2;
-        const newestCandidates = rawProducts
-            .filter(p => p.id !== 45 && !topSellerTmplIds.includes(p.id))
-            .sort((a, b) => new Date(b.create_date) - new Date(a.create_date))
-            .slice(0, NEWEST_COUNT)
-            .map(p => p.id);
+        // Rellena TODOS los huecos que queden libres (no solo 2 fijos) con los productos más
+        // recientes, para llegar a TOTAL_HOME_COUNT siempre que haya suficientes productos
+        // publicados en Odoo. Si hubiera menos productos en total, se muestran los que haya.
+        const remainingSlots = TOTAL_HOME_COUNT - topSellerTmplIds.length;
+        if (remainingSlots > 0) {
+            const newestCandidates = rawProducts
+                .filter(p => p.id !== 45 && !topSellerTmplIds.includes(p.id))
+                .sort((a, b) => new Date(b.create_date) - new Date(a.create_date))
+                .slice(0, remainingSlots)
+                .map(p => p.id);
 
-        products.forEach(prod => {
-            const tmplId = Number(String(prod.id).replace('odoo-', ''));
-            if (newestCandidates.includes(tmplId)) {
-                prod.featured = true;
-                prod.badge = 'NUEVO';
-            }
-        });
-
-        // --- RELLENO (por si no hay 4 productos distintos entre más vendidos + más recientes) ---
-        // Ej: si en Odoo solo hay ventas de 1 producto, o si "el más reciente" coincidía con
-        // "el más vendido" y se descartó para no repetir. Completa hasta 4 con otros productos
-        // publicados, sin badge especial, para que la sección de inicio no se quede corta.
-        const TOTAL_HOME_COUNT = 4;
-        const alreadyFeaturedCount = products.filter(prod => prod.id !== 'odoo-45' && prod.featured).length;
-        if (alreadyFeaturedCount < TOTAL_HOME_COUNT) {
-            const missing = TOTAL_HOME_COUNT - alreadyFeaturedCount;
-            const fillerCandidates = products.filter(prod => prod.id !== 'odoo-45' && !prod.featured).slice(0, missing);
-            fillerCandidates.forEach(prod => { prod.featured = true; });
+            products.forEach(prod => {
+                const tmplId = Number(String(prod.id).replace('odoo-', ''));
+                if (newestCandidates.includes(tmplId)) {
+                    prod.featured = true;
+                    prod.badge = 'NUEVO';
+                }
+            });
         }
 
         // Caché en el borde de Vercel: sirve la misma respuesta hasta 5 min sin volver a
