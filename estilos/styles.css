@@ -766,6 +766,12 @@ header.main-header {
     transition: transform var(--transition-fast);
 }
 
+/* En modo oscuro los SVG se ven negros (color original) sobre el círculo oscuro y
+   se pierden — los invertimos a blanco para que se distingan bien. */
+[data-theme="dark"] .pillar-icon-img img {
+    filter: brightness(0) invert(1);
+}
+
 .pillar-card:hover .pillar-icon-img {
     background: var(--accent-jungle);
     border-color: var(--accent-jungle);
