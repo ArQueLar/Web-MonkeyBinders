@@ -138,11 +138,14 @@ export default async function handler(req, res) {
         const products = rawProducts.map(p => {
             const categNames = (p.public_categ_ids || []).map(id => categNameById[id]).filter(Boolean);
 
-            let tcg = 'pokemon'; // sin categoría = Pokémon por defecto
-            if (categNames.includes('Magic')) tcg = 'magic';
+            let tcg; // sin categoría = Pokémon por defecto
+            if (categNames.includes('Pokemon')) tcg = 'pokemon';
+            else if (categNames.includes('Magic')) tcg = 'magic';
             else if (categNames.includes('Otros')) tcg = 'otros';
 
             const grabadocolor = categNames.includes('Color');
+
+            const services = categNames.includes('Services');
 
             let expansion = 'all';
             for (const name of categNames) {
@@ -176,6 +179,7 @@ export default async function handler(req, res) {
                 tcg,
                 expansion,
                 grabadocolor,
+                services,
                 price: priceWithTax,
                 price12p: priceWithTax, // Odoo no tiene todavía un precio distinto para 12 bolsillos
                 rating: null,           // Odoo no tiene valoraciones conectadas todavía

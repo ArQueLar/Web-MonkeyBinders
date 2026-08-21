@@ -396,7 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const productDetailView = document.getElementById('product-detail-view');
 
     function createProductCardHTML(p) {
-        const categoryLabel = p.grabadocolor ? 'GRABADO LÁSER A COLOR' : 'GRABADO LÁSER';
+        const categoryLabel = p.services
+            ? 'SERVICIOS'
+            : p.grabadocolor
+                ? 'GRABADO LÁSER A COLOR'
+                : 'GRABADO LÁSER';
         const frontImgPath = getImgPath(p.frontImg);
         const backImgPath = getImgPath(p.backImg);
 
