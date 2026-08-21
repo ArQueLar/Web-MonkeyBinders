@@ -241,7 +241,7 @@ export default async function handler(req, res) {
                     const tmplId = Number(String(prod.id).replace('odoo-', ''));
                     if (topSellerTmplIds.includes(tmplId)) {
                         prod.featured = true;
-                        prod.badge = 'TOP VENTAS';
+                        prod.badge = 'MÁS VENDIDO';
                     }
                 });
             }
@@ -279,7 +279,16 @@ export default async function handler(req, res) {
         // es la optimización que más rendimiento da a coste cero.
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
 
-        return res.status(200).json({ success: true, products });
+        return res.status(200).json({
+            success: true,
+            products,
+            _debug: {
+                topSellerTmplIds,
+                matchedBestSellersCount: products.filter(p => p.badge === 'MÁS VENDIDO').map(p => p.id),
+                newestMarked: products.filter(p => p.badge === 'NUEVO').map(p => p.id),
+                totalFeatured: products.filter(p => p.featured === true).length
+            }
+        });
     } catch (err) {
         return res.status(500).json({ success: false, error: 'Error interno del servidor', detail: err.message });
     }
