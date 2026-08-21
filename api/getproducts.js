@@ -9,9 +9,9 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Método no permitido' });
     }
 
-    const ODOO_URL = process.env.ODOO_URL;
-    const ODOO_DB = process.env.ODOO_DB;
-    const ODOO_LOGIN = process.env.ODOO_LOGIN;
+    const ODOO_URL = process.env.ODOO_URL;       // ej: https://midominio.odoo.com (sin barra al final)
+    const ODOO_DB = process.env.ODOO_DB;         // ej: midominio
+    const ODOO_LOGIN = process.env.ODOO_LOGIN;   // email del usuario de integración
     const ODOO_API_KEY = process.env.ODOO_API_KEY;
 
     if (!ODOO_URL || !ODOO_DB || !ODOO_LOGIN || !ODOO_API_KEY) {
@@ -42,31 +42,32 @@ export default async function handler(req, res) {
             return res.status(401).json({ success: false, error: 'No se pudo autenticar con Odoo. Revisa DB, login y API Key.' });
         }
 
-        // 1. Traemos el nombre de TODAS las categorías web para poder traducir sus IDs a texto
-        const categories = await callOdoo('object', 'execute_kw', [
-            ODOO_DB, uid, ODOO_API_KEY,
-            'product.public.category', 'search_read',
-            [[]],
-            { fields: ['id', 'name'] }
+        // Pedimos categorías y productos EN PARALELO (ninguno depende del otro, solo del uid ya obtenido)
+        const [categories, rawProducts] = await Promise.all([
+            callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'product.public.category', 'search_read',
+                [[]],
+                { fields: ['id', 'name'] }
+            ]),
+            callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'product.template', 'search_read',
+                [[['sale_ok', '=', true], ['website_published', '=', true]]],
+                {
+                    fields: [
+                        'id', 'name', 'list_price', 'description_sale',
+                        'public_categ_ids', 'product_template_image_ids'
+                    ],
+                    limit: 200
+                }
+            ])
         ]);
+
         const categNameById = {};
         categories.forEach(c => { categNameById[c.id] = c.name; });
 
-        // 2. Traemos los productos publicados y a la venta
-        const rawProducts = await callOdoo('object', 'execute_kw', [
-            ODOO_DB, uid, ODOO_API_KEY,
-            'product.template', 'search_read',
-            [[['sale_ok', '=', true], ['website_published', '=', true]]],
-            {
-                fields: [
-                    'id', 'name', 'list_price', 'description_sale',
-                    'public_categ_ids', 'product_template_image_ids'
-                ],
-                limit: 200
-            }
-        ]);
-
-        // 3. Traducimos cada producto de Odoo al formato que ya usa la web
+        // Traducimos cada producto de Odoo al formato que ya usa la web
         const products = rawProducts.map(p => {
             const categNames = (p.public_categ_ids || []).map(id => categNameById[id]).filter(Boolean);
 
@@ -85,11 +86,13 @@ export default async function handler(req, res) {
             // "ediciones", si no, a "diseños". Ajustable si tenéis otro criterio.
             const category = expansion !== 'all' ? 'ediciones' : 'dsgn';
 
-            // Odoo sirve las imágenes publicadas en esta URL sin necesitar autenticación
-            const frontImg = `${ODOO_URL}/web/image/product.template/${p.id}/image_1920`;
+            // Odoo sirve las imágenes publicadas en esta URL sin necesitar autenticación.
+            // Usamos "image_512" en vez de "image_1920": de sobra para tarjetas de producto
+            // y galería, y pesa una fracción de lo que pesaría la resolución completa.
+            const frontImg = `${ODOO_URL}/web/image/product.template/${p.id}/image_512`;
             const extraImageId = (p.product_template_image_ids || [])[0];
             const backImg = extraImageId
-                ? `${ODOO_URL}/web/image/product.image/${extraImageId}/image_1920`
+                ? `${ODOO_URL}/web/image/product.image/${extraImageId}/image_512`
                 : frontImg;
 
             return {
@@ -110,6 +113,12 @@ export default async function handler(req, res) {
                 featured: false
             };
         });
+
+        // Caché en el borde de Vercel: sirve la misma respuesta hasta 5 min sin volver a
+        // preguntarle a Odoo, y sigue sirviendo la versión en caché mientras revalida en
+        // segundo plano hasta 1h. El catálogo no cambia segundo a segundo, así que esto
+        // es la optimización que más rendimiento da a coste cero.
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
 
         return res.status(200).json({ success: true, products });
     } catch (err) {
