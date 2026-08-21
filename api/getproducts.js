@@ -252,8 +252,11 @@ export default async function handler(req, res) {
 
         // Rellena TODOS los huecos que queden libres (no solo 2 fijos) con los productos más
         // recientes, para llegar a TOTAL_HOME_COUNT siempre que haya suficientes productos
-        // publicados en Odoo. Si hubiera menos productos en total, se muestran los que haya.
-        const remainingSlots = TOTAL_HOME_COUNT - topSellerTmplIds.length;
+        // publicados en Odoo. Ojo: usamos cuántos "más vendidos" se marcaron REALMENTE en
+        // products (no topSellerTmplIds.length) — si alguno de los más vendidos ya no está
+        // publicado en la web, no cuenta como hueco ocupado, y aquí se rellena igualmente.
+        const matchedBestSellersCount = products.filter(p => p.badge === 'MÁS VENDIDO').length;
+        const remainingSlots = TOTAL_HOME_COUNT - matchedBestSellersCount;
         if (remainingSlots > 0) {
             const newestCandidates = rawProducts
                 .filter(p => p.id !== 45 && !topSellerTmplIds.includes(p.id))
