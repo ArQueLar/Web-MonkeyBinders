@@ -156,11 +156,14 @@ export default async function handler(req, res) {
             // Odoo sirve las imágenes publicadas en esta URL sin necesitar autenticación.
             // Usamos "image_512" en vez de "image_1920": de sobra para tarjetas de producto
             // y galería, y pesa una fracción de lo que pesaría la resolución completa.
-            const frontImg = `${ODOO_URL}/web/image/product.template/${p.id}/image_512`;
-            const extraImageId = (p.product_template_image_ids || [])[0];
-            const backImg = extraImageId
-                ? `${ODOO_URL}/web/image/product.image/${extraImageId}/image_512`
-                : frontImg;
+            // Cogemos TODAS las imágenes extra del producto (no solo la primera), para que
+            // la galería de la ficha de producto muestre las 3+ fotos que tenga cada binder.
+            const mainImg = `${ODOO_URL}/web/image/product.template/${p.id}/image_512`;
+            const extraImgs = (p.product_template_image_ids || [])
+                .map(imgId => `${ODOO_URL}/web/image/product.image/${imgId}/image_512`);
+            const images = [mainImg, ...extraImgs];
+            const frontImg = images[0];
+            const backImg = images[1] || images[0]; // se mantiene para la tarjeta de producto (hover front/back)
 
             // list_price de Odoo es SIN IVA — aplicamos el % real configurado en el producto
             const taxRate = taxRateForProduct(p);
@@ -180,6 +183,7 @@ export default async function handler(req, res) {
                 badge: null,
                 frontImg,
                 backImg,
+                images,
                 description: p.description_ecommerce || p.description_sale || '',
                 featured: false,
                 hasXLMasterSet: hasXLByProductId[p.id] === true,
