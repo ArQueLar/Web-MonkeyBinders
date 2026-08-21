@@ -708,10 +708,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${currentProduct.description}
                     </div>
                 </div>
+
+                <div style="grid-column: 1 / -1; margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                        <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0;">TAMBIÉN TE PUEDE INTERESAR</h3>
+                    </div>
+                    <div class="product-grid" id="related-products-grid"></div>
+                </div>
             `;
 
             const priceEl = document.getElementById('detail-price');
             const qtyInput = document.getElementById('detail-qty');
+
+            // "También te puede interesar" — solo álbumes (nunca el envío personalizado, odoo-45),
+            // nunca el producto que se está viendo, y en orden aleatorio en cada visita.
+            const relatedGrid = document.getElementById('related-products-grid');
+            if (relatedGrid) {
+                const candidates = products.filter(p => p.id !== currentProduct.id && p.id !== 'odoo-45');
+                const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+                relatedGrid.innerHTML = shuffled.slice(0, 4).map(createProductCardHTML).join('');
+            }
 
             if (enviopersonalizado) {
                 
