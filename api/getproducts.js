@@ -198,7 +198,7 @@ export default async function handler(req, res) {
         // los productos más recientes — así, si hay pocas ventas registradas, el hueco lo cubren
         // más "NUEVO" en vez de quedarse corto o mostrar algo sin sello.
         const TOTAL_HOME_COUNT = 4;
-        const BEST_SELLERS_COUNT = 2;
+        const BEST_SELLERS_COUNT = 3;
         let topSellerTmplIds = [];
         try {
             const salesGrouped = await callOdoo('object', 'execute_kw', [
@@ -241,7 +241,7 @@ export default async function handler(req, res) {
                     const tmplId = Number(String(prod.id).replace('odoo-', ''));
                     if (topSellerTmplIds.includes(tmplId)) {
                         prod.featured = true;
-                        prod.badge = 'MÁS VENDIDO';
+                        prod.badge = 'TOP VENTAS';
                     }
                 });
             }
