@@ -268,6 +268,18 @@ export default async function handler(req, res) {
             }
         });
 
+        // --- RELLENO (por si no hay 4 productos distintos entre más vendidos + más recientes) ---
+        // Ej: si en Odoo solo hay ventas de 1 producto, o si "el más reciente" coincidía con
+        // "el más vendido" y se descartó para no repetir. Completa hasta 4 con otros productos
+        // publicados, sin badge especial, para que la sección de inicio no se quede corta.
+        const TOTAL_HOME_COUNT = 4;
+        const alreadyFeaturedCount = products.filter(prod => prod.id !== 'odoo-45' && prod.featured).length;
+        if (alreadyFeaturedCount < TOTAL_HOME_COUNT) {
+            const missing = TOTAL_HOME_COUNT - alreadyFeaturedCount;
+            const fillerCandidates = products.filter(prod => prod.id !== 'odoo-45' && !prod.featured).slice(0, missing);
+            fillerCandidates.forEach(prod => { prod.featured = true; });
+        }
+
         // Caché en el borde de Vercel: sirve la misma respuesta hasta 5 min sin volver a
         // preguntarle a Odoo, y sigue sirviendo la versión en caché mientras revalida en
         // segundo plano hasta 1h. El catálogo no cambia segundo a segundo, así que esto
