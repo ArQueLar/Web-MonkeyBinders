@@ -664,8 +664,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="product-info-panel">
                     ${currentProduct.badge ? `<span class="hero-badge">${currentProduct.badge}</span>` : ''}
                     <h1 style="font-size: 32px; margin: 10px 0;">${currentProduct.name}</h1>
-                    
-                    <div style="margin: 20px 0; color: var(--text-secondary); line-height: 1.6;">${currentProduct.description}</div>
 
                     <div class="selector-group">
                         <label class="filter-label">TAMAÑO Y CAPACIDAD:</label>
@@ -688,6 +686,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn-primary" id="btn-add-detail" style="width: 100%; margin-top: 20px; padding: 16px;">
                         🛒 AÑADIR AL CARRITO
                     </button>
+                </div>
+
+                <div style="grid-column: 1 / -1; margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                        <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0;">DESCRIPCIÓN DEL PRODUCTO</h3>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+                        ${currentProduct.description}
+                    </div>
                 </div>
             `;
 
