@@ -138,14 +138,11 @@ export default async function handler(req, res) {
         const products = rawProducts.map(p => {
             const categNames = (p.public_categ_ids || []).map(id => categNameById[id]).filter(Boolean);
 
-            let tcg; // sin categoría = Pokémon por defecto
-            if (categNames.includes('Pokemon')) tcg = 'pokemon';
-            else if (categNames.includes('Magic')) tcg = 'magic';
+            let tcg = 'pokemon'; // sin categoría = Pokémon por defecto
+            if (categNames.includes('Magic')) tcg = 'magic';
             else if (categNames.includes('Otros')) tcg = 'otros';
 
             const grabadocolor = categNames.includes('Color');
-
-            const services = categNames.includes('Services');
 
             let expansion = 'all';
             for (const name of categNames) {
@@ -179,7 +176,6 @@ export default async function handler(req, res) {
                 tcg,
                 expansion,
                 grabadocolor,
-                services,
                 price: priceWithTax,
                 price12p: priceWithTax, // Odoo no tiene todavía un precio distinto para 12 bolsillos
                 rating: null,           // Odoo no tiene valoraciones conectadas todavía
@@ -194,6 +190,62 @@ export default async function handler(req, res) {
                 engravingOptions: engravingOptionsByProductId[p.id] || []
             };
         });
+
+        // --- MÁS VENDIDOS (según pedidos de venta CONFIRMADOS reales en Odoo) ---
+        // Marca automáticamente los top N productos como "featured" (salen en la Colección de
+        // Élite del inicio) y les pone el badge "MÁS VENDIDO" en la tarjeta. Si algo falla aquí
+        // (ej. el usuario de integración no tiene permiso sobre Ventas), no rompe el resto de
+        // la tienda: simplemente no se marca ningún best-seller esa vez.
+        const BEST_SELLERS_COUNT = 5;
+        try {
+            const salesGrouped = await callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'sale.order.line', 'read_group',
+                [[['state', 'in', ['sale', 'done']]], ['product_uom_qty'], ['product_id']]
+            ]);
+
+            const variantIds = [...new Set(salesGrouped
+                .map(g => Array.isArray(g.product_id) ? g.product_id[0] : g.product_id)
+                .filter(Boolean))];
+
+            if (variantIds.length > 0) {
+                const variants = await callOdoo('object', 'execute_kw', [
+                    ODOO_DB, uid, ODOO_API_KEY,
+                    'product.product', 'read',
+                    [variantIds],
+                    { fields: ['product_tmpl_id'] }
+                ]);
+                const tmplIdByVariantId = {};
+                variants.forEach(v => {
+                    tmplIdByVariantId[v.id] = Array.isArray(v.product_tmpl_id) ? v.product_tmpl_id[0] : v.product_tmpl_id;
+                });
+
+                const soldQtyByTmplId = {};
+                salesGrouped.forEach(g => {
+                    const variantId = Array.isArray(g.product_id) ? g.product_id[0] : g.product_id;
+                    const tmplId = tmplIdByVariantId[variantId];
+                    if (!tmplId) return;
+                    soldQtyByTmplId[tmplId] = (soldQtyByTmplId[tmplId] || 0) + (g.product_uom_qty || 0);
+                });
+
+                const topSellerTmplIds = Object.entries(soldQtyByTmplId)
+                    .filter(([tmplId]) => Number(tmplId) !== 45) // nunca el "envío personalizado"
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, BEST_SELLERS_COUNT)
+                    .map(([tmplId]) => Number(tmplId));
+
+                products.forEach(prod => {
+                    const tmplId = Number(String(prod.id).replace('odoo-', ''));
+                    if (topSellerTmplIds.includes(tmplId)) {
+                        prod.featured = true;
+                        prod.badge = 'MÁS VENDIDO';
+                    }
+                });
+            }
+        } catch (err) {
+            // Silencioso a propósito: mejor mostrar la tienda sin best-sellers marcados
+            // que romper toda la carga de productos por esto.
+        }
 
         // Caché en el borde de Vercel: sirve la misma respuesta hasta 5 min sin volver a
         // preguntarle a Odoo, y sigue sirviendo la versión en caché mientras revalida en
