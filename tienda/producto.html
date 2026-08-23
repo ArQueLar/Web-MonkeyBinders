@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
     <link rel="icon" href="/assets/Cosas Web/Logo/Monkey.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/src/css/styles.css">
     <style>
         .product-detail-container {
@@ -19,6 +22,7 @@
             gap: 40px;
             align-items: start;
         }
+
         .product-gallery {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -26,18 +30,21 @@
             padding: 20px;
             text-align: center;
         }
+
         .product-main-img {
             max-height: 400px;
             margin: 0 auto;
             object-fit: contain;
             width: 100%;
         }
+
         .gallery-thumbs {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin-top: 15px;
         }
+
         .thumb-img {
             width: 60px;
             height: 60px;
@@ -48,17 +55,21 @@
             padding: 4px;
             background: var(--bg-card-img);
         }
+
         .thumb-img.active {
             border-color: var(--accent-jungle);
         }
+
         .selector-group {
             margin: 20px 0;
         }
+
         .size-options {
             display: flex;
             gap: 12px;
             margin-top: 8px;
         }
+
         .size-btn {
             flex: 1;
             padding: 12px;
@@ -71,17 +82,20 @@
             cursor: pointer;
             transition: all var(--transition-fast);
         }
+
         .size-btn.active {
             border-color: var(--accent-jungle);
             background: var(--bg-surface);
             color: var(--accent-jungle);
         }
+
         .qty-picker {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-top: 8px;
         }
+
         .qty-btn {
             width: 40px;
             height: 40px;
@@ -99,11 +113,13 @@
             padding: 0;
             line-height: 1;
         }
+
         .qty-btn:hover {
             background: var(--bg-surface);
             border-color: var(--accent-jungle);
             color: var(--accent-jungle);
         }
+
         .qty-picker input {
             width: 60px;
             height: 40px;
@@ -120,6 +136,7 @@
             padding: 0;
             -moz-appearance: textfield;
         }
+
         .qty-picker input::-webkit-outer-spin-button,
         .qty-picker input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -134,6 +151,7 @@
                 margin: 20px auto;
                 padding: 0 16px;
             }
+
             .product-main-img {
                 max-height: 320px;
             }
@@ -145,16 +163,20 @@
                 margin: 16px auto;
                 padding: 0 12px;
             }
+
             .product-main-img {
                 max-height: 250px;
             }
+
             .product-info-panel h1 {
                 font-size: 24px !important;
             }
+
             .size-options {
                 flex-direction: column;
                 gap: 8px;
             }
+
             .size-btn {
                 padding: 10px;
                 font-size: 12px;
@@ -162,11 +184,13 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="announcement-bar">
         <div class="announcement-content">
-            <div class="announcement-item"><span>⚡</span><span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span></div>
+            <div class="announcement-item"><span>⚡</span><span>Binders Exclusivos con <span class="highlight">Grabado
+                        Láser de Precisión</span></span></div>
         </div>
     </div>
 
@@ -286,7 +310,8 @@
             <div class="cart-items-list" id="cart-items-list"></div>
             <div class="cart-footer">
                 <div class="cart-subtotal"><span>SUBTOTAL:</span><span id="cart-subtotal">0.00 €</span></div>
-                <button class="checkout-btn" onclick="alert(' Redirigiendo al checkout seguro!')">FINALIZAR COMPRA</button>
+                <button class="checkout-btn" onclick="alert(' Redirigiendo al checkout seguro!')">FINALIZAR
+                    COMPRA</button>
             </div>
         </div>
     </div>
@@ -312,12 +337,14 @@
     <!-- MODAL VISTA RÁPIDA / CUENTA / BUSCADOR -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
-            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);" id="close-modal-btn">✕</button>
+            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);"
+                id="close-modal-btn">✕</button>
             <div id="modal-body"></div>
         </div>
     </div>
 
     <div class="toast-container" id="toast-container"></div>
-    <script type="module" src="/src/js/app.js"></script>
+    <script type="module" src="/src/js/main.js"></script>
 </body>
+
 </html>
