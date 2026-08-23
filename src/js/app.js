@@ -10,10 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // tocar nada más del código.
     const XL_MASTER_SET_WARNING = 'Los binders XL Master Set son bajo pedido y pueden tardar más en fabricarse. Te contactaremos para confirmar el plazo exacto antes de procesar tu pedido.';
 
+    // Con Vite todo se sirve en rutas absolutas desde la raíz del sitio, así que ya no
+    // hace falta calcular "¿estoy en una subcarpeta?" para las imágenes — siempre "/ruta".
     function getImgPath(path) {
         if (/^https?:\/\//i.test(path)) return path; // URLs absolutas (ej. imágenes de Odoo) se dejan tal cual
-        const isSubfolder = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
-        return isSubfolder ? `../${path}` : path;
+        return path.startsWith('/') ? path : `/${path}`;
     }
 
     // --- MODO OSCURO & CAMBIO DINÁMICO DE LOGO ---
@@ -26,14 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('theme', theme);
 
         if (themeIcon) {
-            const basePath = getImgPath('assets/Cosas Web/svg/');
-            themeIcon.src = theme === 'dark' ? basePath + 'sol.svg' : basePath + 'luna.svg';
+            themeIcon.src = theme === 'dark' ? getImgPath('assets/Cosas Web/svg/sol.svg') : getImgPath('assets/Cosas Web/svg/luna.svg');
         }
 
         if (headerLogoImg) {
-            const isSub = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
-            const logoPath = isSub ? '../assets/Cosas Web/Logo/' : 'assets/Cosas Web/Logo/';
-            headerLogoImg.src = theme === 'dark' ? logoPath + 'LogoBlanco.png' : logoPath + 'Logo.png';
+            headerLogoImg.src = theme === 'dark' ? getImgPath('assets/Cosas Web/Logo/LogoBlanco.png') : getImgPath('assets/Cosas Web/Logo/Logo.png');
         }
     }
 
@@ -137,8 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (matches.length === 0) {
                     results.innerHTML = `<p style="font-size:12px; color:var(--text-muted); text-align:center;">Sin resultados para "${query}"</p>`;
                 } else {
-                    const isSub = window.location.pathname.includes('tienda.html') || window.location.pathname.includes('producto.html');
-                    const basePath = isSub ? 'producto.html' : 'tienda/producto.html';
+                    const basePath = '/tienda/producto.html'; // ruta absoluta: funciona igual sin importar desde qué página busques
                     results.innerHTML = matches.map(m => `
                         <a href="${basePath}?id=${m.id}" style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border-color); text-decoration:none;">
                             <img src="${getImgPath(m.frontImg)}" style="width:36px; height:36px; object-fit:contain;">
@@ -404,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const frontImgPath = getImgPath(p.frontImg);
         const backImgPath = getImgPath(p.backImg);
 
-        const targetUrl = window.location.pathname.includes('tienda/') ? `producto.html?id=${p.id}` : `tienda/producto.html?id=${p.id}`;
+        const targetUrl = `/tienda/producto.html?id=${p.id}`; // ruta absoluta: la tarjeta funciona igual se pinte donde se pinte
 
         return `
         <div class="product-card" data-id="${p.id}">
@@ -494,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Si /api/get-products no existe todavía (no está desplegado) o falla, la web sigue
     // funcionando con normalidad solo con los productos hardcodeados.
     if (productGrid || featuredProductGrid || productDetailView) {
-        fetch('../api/getproducts')
+        fetch('/api/get-products')
             .then(r => r.json())
             .then(data => {
                 if (!data.success || !Array.isArray(data.products) || data.products.length === 0) return;
@@ -693,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             productDetailView.innerHTML = `
                 <div style="grid-column: 1 / -1; margin-bottom: -10px;">
-                    <a href="tienda.html" class="btn-secondary" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px;">
+                    <a href="/tienda/tienda.html" class="btn-secondary" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; font-size:11px;">
                         ← Volver a la Tienda
                     </a>
                 </div>
@@ -958,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.readAsDataURL(file);
             });
 
-            const response = await fetch('../api/image', {
+            const response = await fetch('/api/upload-image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64 })

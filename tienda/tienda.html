@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda Oficial | Monkey Binders EU</title>
-    <link rel="icon" href="../assets/Cosas Web/Logo/Monkey.png" type="image/png">
+    <link rel="icon" href="/assets/Cosas Web/Logo/Monkey.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../estilos/styles.css">
+    <link rel="stylesheet" href="/src/css/styles.css">
 </head>
 <body>
 
@@ -20,33 +20,33 @@
 
     <header class="main-header" id="main-header">
         <div class="header-container">
-            <a href="../index.html" class="brand-logo" id="logo-link">
-                <img src="../assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo" id="header-logo-img">
+            <a href="/index.html" class="brand-logo" id="logo-link">
+                <img src="/assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo" id="header-logo-img">
             </a>
 
             <nav class="nav-container">
                 <ul class="nav-menu">
-                    <li class="nav-item"><a href="../index.html" class="nav-link">Inicio</a></li>
-                    <li class="nav-item"><a href="tienda.html" class="nav-link active">Tienda</a></li>
-                    <li class="nav-item"><a href="tienda.html#customizer" class="nav-link">Personalizar</a></li>
-                    <li class="nav-item"><a href="../index.html#about" class="nav-link">Sobre Nosotros</a></li>
-                    <li class="nav-item"><a href="../index.html#reviews" class="nav-link">Comunidad</a></li>
-                    <li class="nav-item"><a href="../index.html#contact" class="nav-link">Contacto</a></li>
+                    <li class="nav-item"><a href="/index.html" class="nav-link">Inicio</a></li>
+                    <li class="nav-item"><a href="/tienda/tienda.html" class="nav-link active">Tienda</a></li>
+                    <li class="nav-item"><a href="/tienda/tienda.html#customizer" class="nav-link">Personalizar</a></li>
+                    <li class="nav-item"><a href="/index.html#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li class="nav-item"><a href="/index.html#reviews" class="nav-link">Comunidad</a></li>
+                    <li class="nav-item"><a href="/index.html#contact" class="nav-link">Contacto</a></li>
                 </ul>
             </nav>
 
             <div class="header-actions">
                 <button class="icon-btn" id="theme-toggle-btn" title="Alternar Tema">
-                    <img src="../assets/Cosas Web/svg/luna.svg" alt="Tema" class="header-icon-svg" id="theme-icon">
+                    <img src="/assets/Cosas Web/svg/luna.svg" alt="Tema" class="header-icon-svg" id="theme-icon">
                 </button>
                 <button class="icon-btn" id="search-toggle-btn" title="Buscar Productos">
-                    <img src="../assets/Cosas Web/svg/lupa.svg" alt="Buscar" class="header-icon-svg">
+                    <img src="/assets/Cosas Web/svg/lupa.svg" alt="Buscar" class="header-icon-svg">
                 </button>
                 <button class="icon-btn" id="account-toggle-btn" title="Cuenta de Usuario">
-                    <img src="../assets/Cosas Web/svg/perfil.svg" alt="Perfil" class="header-icon-svg">
+                    <img src="/assets/Cosas Web/svg/perfil.svg" alt="Perfil" class="header-icon-svg">
                 </button>
                 <button class="icon-btn" id="cart-toggle-btn" title="Carrito de Compras">
-                    <img src="../assets/Cosas Web/svg/carrito.svg" alt="Carrito" class="header-icon-svg">
+                    <img src="/assets/Cosas Web/svg/carrito.svg" alt="Carrito" class="header-icon-svg">
                     <span class="badge-count" id="cart-count-badge">0</span>
                 </button>
                 <button class="icon-btn mobile-only-btn" id="mobile-menu-toggle-btn" title="Menú Móvil">
@@ -94,7 +94,8 @@
     <section class="products-section" id="envio-personalizado-section" style="display:none; padding-top:0;">
         <div class="products-filter-bar" style="margin-bottom:20px;">
             <div>
-                <h2 class="section-title" style="font-size:24px;">SERVICIOS</h2>
+                <span class="section-tag" style="text-align:left;">SERVICIO</span>
+                <h2 class="section-title" style="font-size:24px;">ENVÍO PERSONALIZADO</h2>
             </div>
         </div>
         <div class="product-grid" id="envio-personalizado-container" style="grid-template-columns: minmax(220px, 320px); justify-content:start;"></div>
@@ -200,10 +201,10 @@
             <div>
                 <div class="footer-col-title">NAVEGACIÓN</div>
                 <ul class="footer-links">
-                    <li><a href="../index.html">Inicio</a></li>
-                    <li><a href="tienda.html">Tienda Completa</a></li>
-                    <li><a href="../index.html#about">Sobre Nosotros</a></li>
-                    <li><a href="tienda.html#customizer">Personalizar Binder</a></li>
+                    <li><a href="/index.html">Inicio</a></li>
+                    <li><a href="/tienda/tienda.html">Tienda Completa</a></li>
+                    <li><a href="/index.html#about">Sobre Nosotros</a></li>
+                    <li><a href="/tienda/tienda.html#customizer">Personalizar Binder</a></li>
                 </ul>
             </div>
 
@@ -211,13 +212,13 @@
                 <div class="footer-col-title">REDES OFICIALES</div>
                 <ul class="footer-links">
                     <li><a href="https://t.me/MonkeyBinders" target="_blank"><img
-                                src="../assets/Cosas Web/svg/telegram.svg" alt="Telegram" class="redes-svg"> Canal de
+                                src="/assets/Cosas Web/svg/telegram.svg" alt="Telegram" class="redes-svg"> Canal de
                             Telegram</a></li>
                     <li><a href="https://www.instagram.com/monkeybinders" target="_blank"><img
-                                src="../assets/Cosas Web/svg/instagram.svg" alt="Instagram" class="redes-svg">
+                                src="/assets/Cosas Web/svg/instagram.svg" alt="Instagram" class="redes-svg">
                             Instagram</a></li>
                     <li><a href="https://www.tiktok.com/@monkeybinders" target="_blank"><img
-                                src="../assets/Cosas Web/svg/tiktok.svg" alt="TikTok" class="redes-svg"> TikTok</a></li>
+                                src="/assets/Cosas Web/svg/tiktok.svg" alt="TikTok" class="redes-svg"> TikTok</a></li>
                 </ul>
             </div>
 
@@ -238,10 +239,10 @@
             <div>© 2026 Monkey Binders. Todos los derechos reservados.</div>
             <div style="display:flex; align-items:center; gap:16px;">
                 <div class="payment-icons">
-                    <img src="../assets/Cosas Web/pagos/visa.png" alt="Visa" class="payment-icon">
-                    <img src="../assets/Cosas Web/pagos/mastercard.png" alt="Mastercard" class="payment-icon">
-                    <img src="../assets/Cosas Web/pagos/applepay.png" alt="Apple Pay" class="payment-icon">
-                    <img src="../assets/Cosas Web/pagos/googlepay.png" alt="Google Pay" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/visa.png" alt="Visa" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/mastercard.png" alt="Mastercard" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/applepay.png" alt="Apple Pay" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/googlepay.png" alt="Google Pay" class="payment-icon">
                 </div>
                 <span class="secure-shipping">🔒 Envíos Seguros</span>
             </div>
@@ -316,12 +317,12 @@
                 <button class="close-drawer-btn" id="close-mobile-nav-btn">✕</button>
             </div>
             <ul class="mobile-nav-list">
-                <li><a href="../index.html">Inicio</a></li>
-                <li><a href="tienda.html">Tienda</a></li>
-                <li><a href="tienda.html#customizer">Personalizar</a></li>
-                <li><a href="../index.html#about">Sobre Nosotros</a></li>
-                <li><a href="../index.html#reviews">Comunidad</a></li>
-                <li><a href="../index.html#contact">Contacto</a></li>
+                <li><a href="/index.html">Inicio</a></li>
+                <li><a href="/tienda/tienda.html">Tienda</a></li>
+                <li><a href="/tienda/tienda.html#customizer">Personalizar</a></li>
+                <li><a href="/index.html#about">Sobre Nosotros</a></li>
+                <li><a href="/index.html#reviews">Comunidad</a></li>
+                <li><a href="/index.html#contact">Contacto</a></li>
             </ul>
         </div>
     </div>
@@ -335,6 +336,6 @@
     </div>
 
     <div class="toast-container" id="toast-container"></div>
-    <script src="../backend/app.js"></script>
+    <script type="module" src="/src/js/app.js"></script>
 </body>
 </html>
