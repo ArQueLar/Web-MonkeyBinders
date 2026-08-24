@@ -254,12 +254,46 @@ export function renderEnvioPersonalizado() {
 
 // Pide los productos a Odoo y los añade a los ya existentes. Devuelve true si se
 // añadió algo nuevo, false si no había nada o si falló (Odoo no conectado todavía).
+// Cuánto tiempo confiamos en la copia guardada en este navegador antes de volver a
+// preguntar (en milisegundos). Es independiente de la caché del servidor: esta hace
+// que moverte entre páginas dentro de la misma visita sea instantáneo, sin ni
+// siquiera esperar una respuesta de red.
+const SESSION_CACHE_KEY = 'mb_odoo_products_cache';
+const SESSION_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutos
+
+function readSessionCache() {
+    try {
+        const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (Date.now() - cached.savedAt > SESSION_CACHE_MAX_AGE_MS) return null;
+        return cached.products;
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeSessionCache(odooProducts) {
+    try {
+        sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), products: odooProducts }));
+    } catch (e) {
+        // Si sessionStorage no está disponible o está lleno, simplemente no cacheamos en el navegador
+    }
+}
+
 export async function fetchOdooProducts() {
+    const cached = readSessionCache();
+    if (cached) {
+        products = products.concat(cached);
+        return true;
+    }
+
     try {
         const r = await fetch('/api/get-products');
         const data = await r.json();
         if (data.success && Array.isArray(data.products) && data.products.length > 0) {
             products = products.concat(data.products);
+            writeSessionCache(data.products);
             return true;
         }
     } catch (e) {

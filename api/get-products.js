@@ -42,8 +42,9 @@ export default async function handler(req, res) {
             return res.status(401).json({ success: false, error: 'No se pudo autenticar con Odoo. Revisa DB, login y API Key.' });
         }
 
-        // Pedimos categorías y productos EN PARALELO (ninguno depende del otro, solo del uid ya obtenido)
-        const [categories, rawProducts] = await Promise.all([
+        // RONDA 1: categorías, productos y ventas — ninguno depende de los otros dos,
+        // solo del uid ya obtenido, así que van los 3 a la vez en vez de uno detrás de otro.
+        const [categories, rawProducts, salesGrouped] = await Promise.all([
             callOdoo('object', 'execute_kw', [
                 ODOO_DB, uid, ODOO_API_KEY,
                 'product.public.category', 'search_read',
@@ -62,28 +63,55 @@ export default async function handler(req, res) {
                     ],
                     limit: 200
                 }
-            ])
+            ]),
+            callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'sale.order.line', 'read_group',
+                [[['state', 'in', ['sale', 'done']]], ['product_uom_qty'], ['product_id']]
+            ]).catch(() => []) // si esto falla, seguimos sin marcar "más vendidos" en vez de romper todo
         ]);
 
         const categNameById = {};
         categories.forEach(c => { categNameById[c.id] = c.name; });
 
-        // Leemos los valores del atributo "Opciones adicionales" de cada producto.
-        // "XL Master Set" controla el selector de tamaño 3x3 / 4x3 XL (ver más abajo).
-        // El resto de valores ("Normal", "Sin logo de colección", etc.) son solo
-        // informativos para el grabado — se muestran como botones aparte, sin tocar el precio.
         const allLineIds = [...new Set(rawProducts.flatMap(p => p.attribute_line_ids || []))];
-        let hasXLByProductId = {};
-        let engravingOptionsByProductId = {};
+        const allTaxIds = [...new Set(rawProducts.flatMap(p => p.taxes_id || []))];
+        const variantIds = [...new Set(salesGrouped
+            .map(g => Array.isArray(g.product_id) ? g.product_id[0] : g.product_id)
+            .filter(Boolean))];
 
-        if (allLineIds.length > 0) {
-            const attributeLines = await callOdoo('object', 'execute_kw', [
+        // RONDA 2: líneas de atributos, impuestos y variantes vendidas — cada uno depende
+        // de datos de la ronda 1, pero NO depende de los otros dos de esta misma ronda,
+        // así que también van los 3 a la vez.
+        const [attributeLines, taxes, variants] = await Promise.all([
+            allLineIds.length > 0 ? callOdoo('object', 'execute_kw', [
                 ODOO_DB, uid, ODOO_API_KEY,
                 'product.template.attribute.line', 'read',
                 [allLineIds],
                 { fields: ['product_tmpl_id', 'value_ids'] }
-            ]);
+            ]) : [],
+            allTaxIds.length > 0 ? callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'account.tax', 'read',
+                [allTaxIds],
+                { fields: ['amount', 'amount_type'] }
+            ]) : [],
+            variantIds.length > 0 ? callOdoo('object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'product.product', 'read',
+                [variantIds],
+                { fields: ['product_tmpl_id'] }
+            ]) : []
+        ]);
 
+        // Leemos los valores del atributo "Opciones adicionales" de cada producto.
+        // "XL Master Set" controla el selector de tamaño 3x3 / 4x3 XL (ver más abajo).
+        // El resto de valores ("Normal", "Sin logo de colección", etc.) son solo
+        // informativos para el grabado — se muestran como botones aparte, sin tocar el precio.
+        let hasXLByProductId = {};
+        let engravingOptionsByProductId = {};
+
+        if (attributeLines.length > 0) {
             const allValueIds = [...new Set(attributeLines.flatMap(l => l.value_ids || []))];
             const attributeValues = allValueIds.length > 0 ? await callOdoo('object', 'execute_kw', [
                 ODOO_DB, uid, ODOO_API_KEY,
@@ -112,22 +140,12 @@ export default async function handler(req, res) {
         // Leemos el % de IVA de cada impuesto usado en los productos, para calcular el
         // precio final CON IVA incluido (list_price de Odoo viene siempre SIN IVA).
         const DEFAULT_TAX_RATE = 21; // IVA general en España, solo se usa si un producto no tiene impuesto configurado en Odoo
-        const allTaxIds = [...new Set(rawProducts.flatMap(p => p.taxes_id || []))];
         let taxRateById = {};
-
-        if (allTaxIds.length > 0) {
-            const taxes = await callOdoo('object', 'execute_kw', [
-                ODOO_DB, uid, ODOO_API_KEY,
-                'account.tax', 'read',
-                [allTaxIds],
-                { fields: ['amount', 'amount_type'] }
-            ]);
-            taxes.forEach(t => {
-                // Solo sabemos calcular impuestos de tipo "porcentaje" (lo habitual en España). Si algún
-                // día usáis un impuesto de tipo fijo/grupo, ese producto usará el IVA por defecto de arriba.
-                if (t.amount_type === 'percent') taxRateById[t.id] = t.amount;
-            });
-        }
+        taxes.forEach(t => {
+            // Solo sabemos calcular impuestos de tipo "porcentaje" (lo habitual en España). Si algún
+            // día usáis un impuesto de tipo fijo/grupo, ese producto usará el IVA por defecto de arriba.
+            if (t.amount_type === 'percent') taxRateById[t.id] = t.amount;
+        });
 
         function taxRateForProduct(p) {
             const rates = (p.taxes_id || []).map(id => taxRateById[id]).filter(r => typeof r === 'number');
@@ -201,54 +219,34 @@ export default async function handler(req, res) {
         const TOTAL_HOME_COUNT = 4;
         const BEST_SELLERS_COUNT = 3;
         let topSellerTmplIds = [];
-        try {
-            const salesGrouped = await callOdoo('object', 'execute_kw', [
-                ODOO_DB, uid, ODOO_API_KEY,
-                'sale.order.line', 'read_group',
-                [[['state', 'in', ['sale', 'done']]], ['product_uom_qty'], ['product_id']]
-            ]);
 
-            const variantIds = [...new Set(salesGrouped
-                .map(g => Array.isArray(g.product_id) ? g.product_id[0] : g.product_id)
-                .filter(Boolean))];
+        if (variants.length > 0) {
+            const tmplIdByVariantId = {};
+            variants.forEach(v => {
+                tmplIdByVariantId[v.id] = Array.isArray(v.product_tmpl_id) ? v.product_tmpl_id[0] : v.product_tmpl_id;
+            });
 
-            if (variantIds.length > 0) {
-                const variants = await callOdoo('object', 'execute_kw', [
-                    ODOO_DB, uid, ODOO_API_KEY,
-                    'product.product', 'read',
-                    [variantIds],
-                    { fields: ['product_tmpl_id'] }
-                ]);
-                const tmplIdByVariantId = {};
-                variants.forEach(v => {
-                    tmplIdByVariantId[v.id] = Array.isArray(v.product_tmpl_id) ? v.product_tmpl_id[0] : v.product_tmpl_id;
-                });
+            const soldQtyByTmplId = {};
+            salesGrouped.forEach(g => {
+                const variantId = Array.isArray(g.product_id) ? g.product_id[0] : g.product_id;
+                const tmplId = tmplIdByVariantId[variantId];
+                if (!tmplId) return;
+                soldQtyByTmplId[tmplId] = (soldQtyByTmplId[tmplId] || 0) + (g.product_uom_qty || 0);
+            });
 
-                const soldQtyByTmplId = {};
-                salesGrouped.forEach(g => {
-                    const variantId = Array.isArray(g.product_id) ? g.product_id[0] : g.product_id;
-                    const tmplId = tmplIdByVariantId[variantId];
-                    if (!tmplId) return;
-                    soldQtyByTmplId[tmplId] = (soldQtyByTmplId[tmplId] || 0) + (g.product_uom_qty || 0);
-                });
+            topSellerTmplIds = Object.entries(soldQtyByTmplId)
+                .filter(([tmplId]) => Number(tmplId) !== 45) // nunca el "envío personalizado"
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, BEST_SELLERS_COUNT)
+                .map(([tmplId]) => Number(tmplId));
 
-                topSellerTmplIds = Object.entries(soldQtyByTmplId)
-                    .filter(([tmplId]) => Number(tmplId) !== 45) // nunca el "envío personalizado"
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, BEST_SELLERS_COUNT)
-                    .map(([tmplId]) => Number(tmplId));
-
-                products.forEach(prod => {
-                    const tmplId = Number(String(prod.id).replace('odoo-', ''));
-                    if (topSellerTmplIds.includes(tmplId)) {
-                        prod.featured = true;
-                        prod.badge = 'MÁS VENDIDO';
-                    }
-                });
-            }
-        } catch (err) {
-            // Silencioso a propósito: mejor mostrar la tienda sin best-sellers marcados
-            // que romper toda la carga de productos por esto.
+            products.forEach(prod => {
+                const tmplId = Number(String(prod.id).replace('odoo-', ''));
+                if (topSellerTmplIds.includes(tmplId)) {
+                    prod.featured = true;
+                    prod.badge = 'MÁS VENDIDO';
+                }
+            });
         }
 
         // Rellena TODOS los huecos que queden libres (no solo 2 fijos) con los productos más
@@ -274,11 +272,13 @@ export default async function handler(req, res) {
             });
         }
 
-        // Caché en el borde de Vercel: sirve la misma respuesta hasta 5 min sin volver a
+        // Caché en el borde de Vercel: sirve la misma respuesta hasta 30 min sin volver a
         // preguntarle a Odoo, y sigue sirviendo la versión en caché mientras revalida en
-        // segundo plano hasta 1h. El catálogo no cambia segundo a segundo, así que esto
-        // es la optimización que más rendimiento da a coste cero.
-        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
+        // segundo plano hasta 2h. El catálogo no cambia cada minuto, así que esto es la
+        // optimización que más rendimiento da a coste cero — casi todas las visitas caen
+        // dentro de esos 30 min y reciben la respuesta al instante, desde el borde de red
+        // más cercano al usuario, sin tocar Odoo para nada.
+        res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=7200');
 
         return res.status(200).json({ success: true, products });
     } catch (err) {
