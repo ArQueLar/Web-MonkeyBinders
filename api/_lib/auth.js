@@ -53,16 +53,30 @@ export function getCookie(req, name) {
     return match ? decodeURIComponent(match[1]) : null;
 }
 
+// Node sobrescribe la cabecera Set-Cookie si la llamas dos veces seguidas —
+// hay que ACUMULAR en vez de reemplazar cuando queremos mandar varias cookies
+// a la vez (ej. cookie de cliente + cookie de admin en la misma respuesta).
+function appendSetCookie(res, cookieString) {
+    const existing = res.getHeader('Set-Cookie');
+    if (!existing) {
+        res.setHeader('Set-Cookie', cookieString);
+    } else if (Array.isArray(existing)) {
+        res.setHeader('Set-Cookie', [...existing, cookieString]);
+    } else {
+        res.setHeader('Set-Cookie', [existing, cookieString]);
+    }
+}
+
 export function getSessionFromRequest(req) {
     return verifySession(getCookie(req, COOKIE_NAME));
 }
 
 export function setSessionCookie(res, token) {
-    res.setHeader('Set-Cookie', `${COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
+    appendSetCookie(res, `${COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
 }
 
 export function clearSessionCookie(res) {
-    res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+    appendSetCookie(res, `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
 }
 
 // --- SESIÓN DE ADMINISTRADOR (cookie e identidad separadas de la de clientes) ---
@@ -73,11 +87,11 @@ export function getAdminSessionFromRequest(req) {
 }
 
 export function setAdminSessionCookie(res, token) {
-    res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
+    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
 }
 
 export function clearAdminSessionCookie(res) {
-    res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
 }
 
 // Llamada genérica a Odoo por JSON-RPC (misma idea que en get-products.js)

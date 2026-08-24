@@ -6,7 +6,7 @@
 //   POST   -> inicia sesión, body: { email, password } (antes era api/login.js)
 //   DELETE -> cierra sesión (antes era api/logout.js)
 
-import { callOdoo, signSession, setSessionCookie, clearSessionCookie, getSessionFromRequest } from './_lib/auth.js';
+import { callOdoo, signSession, setSessionCookie, clearSessionCookie, getSessionFromRequest, setAdminSessionCookie } from './_lib/auth.js';
 
 export default async function handler(req, res) {
     if (req.method === 'GET') {
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         if (!session) {
             return res.status(200).json({ success: true, loggedIn: false });
         }
-        return res.status(200).json({ success: true, loggedIn: true, user: { name: session.name, email: session.email } });
+        return res.status(200).json({ success: true, loggedIn: true, user: { name: session.name, email: session.email, isAdmin: session.isAdmin === true } });
     }
 
     if (req.method === 'DELETE') {
@@ -53,10 +53,29 @@ export default async function handler(req, res) {
             const user = userData[0];
             const partnerId = Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id;
 
-            const token = signSession({ uid, email: user.email || email, name: user.name, partnerId });
+            // Comprobamos si esta cuenta es también Administrador de Odoo. Si lo es,
+            // dejamos ya abierta la sesión de admin de regalo (cookie aparte), para
+            // que pueda entrar al panel sin volver a escribir la contraseña.
+            let isAdmin = false;
+            try {
+                isAdmin = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+                    ODOO_DB, uid, password,
+                    'res.users', 'has_group',
+                    ['base.group_system']
+                ]);
+            } catch (e) {
+                isAdmin = false; // si falla la comprobación, simplemente no se le ofrece el acceso admin
+            }
+
+            if (isAdmin) {
+                const adminToken = signSession({ role: 'admin', uid, email: user.email || email });
+                setAdminSessionCookie(res, adminToken);
+            }
+
+            const token = signSession({ uid, email: user.email || email, name: user.name, partnerId, isAdmin });
             setSessionCookie(res, token);
 
-            return res.status(200).json({ success: true, user: { name: user.name, email: user.email || email } });
+            return res.status(200).json({ success: true, user: { name: user.name, email: user.email || email, isAdmin } });
         } catch (err) {
             return res.status(500).json({ success: false, error: 'Error al conectar con Odoo' });
         }
