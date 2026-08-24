@@ -1,85 +1,107 @@
-// api/session.js
-// Gestiona toda la sesión de cliente en UN SOLO endpoint (el plan gratuito de
-// Vercel limita a 12 funciones serverless por despliegue, así que agrupamos
-// por método HTTP en vez de tener un archivo por acción):
-//   GET    -> comprueba si hay sesión activa (antes era api/me.js)
-//   POST   -> inicia sesión, body: { email, password } (antes era api/login.js)
-//   DELETE -> cierra sesión (antes era api/logout.js)
+// lib/auth.js
+// Utilidades compartidas por las funciones de autenticación (api/login.js,
+// api/register.js, api/me.js, api/logout.js, api/orders.js).
+// Vive fuera de la carpeta api/ a propósito: Vercel convierte en endpoint
+// público cualquier archivo dentro de api/, y esto es solo código interno.
 
-import { callOdoo, signSession, setSessionCookie, clearSessionCookie, getSessionFromRequest, setAdminSessionCookie } from './_lib/auth.js';
+import crypto from 'crypto';
 
-export default async function handler(req, res) {
-    if (req.method === 'GET') {
-        const session = getSessionFromRequest(req);
-        if (!session) {
-            return res.status(200).json({ success: true, loggedIn: false });
-        }
-        return res.status(200).json({ success: true, loggedIn: true, user: { name: session.name, email: session.email, isAdmin: session.isAdmin === true } });
+const JWT_SECRET = process.env.JWT_SECRET;
+const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
+const COOKIE_NAME = 'mb_session';
+const ADMIN_COOKIE_NAME = 'mb_admin_session'; // separada a propósito: nunca se mezcla con la de un cliente
+
+function base64url(input) {
+    return Buffer.from(input).toString('base64')
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64urlDecode(input) {
+    input = input.replace(/-/g, '+').replace(/_/g, '/');
+    while (input.length % 4) input += '=';
+    return Buffer.from(input, 'base64').toString('utf8');
+}
+
+function sign(body) {
+    return crypto.createHmac('sha256', JWT_SECRET).update(body).digest('base64')
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+// Crea un token de sesión firmado (formato similar a un JWT, sin dependencias externas)
+export function signSession(payload) {
+    const body = base64url(JSON.stringify({ ...payload, iat: Date.now() }));
+    return `${body}.${sign(body)}`;
+}
+
+// Verifica el token y devuelve el payload si es válido, o null si no lo es / ha caducado
+export function verifySession(token) {
+    if (!token || !token.includes('.')) return null;
+    const [body, signature] = token.split('.');
+    if (sign(body) !== signature) return null; // firma no coincide: manipulado o corrupto
+    try {
+        const payload = JSON.parse(base64urlDecode(body));
+        if (Date.now() - payload.iat > SESSION_MAX_AGE_MS) return null; // caducado
+        return payload;
+    } catch {
+        return null;
     }
+}
 
-    if (req.method === 'DELETE') {
-        clearSessionCookie(res);
-        return res.status(200).json({ success: true });
+export function getCookie(req, name) {
+    const cookies = req.headers.cookie || '';
+    const match = cookies.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+// Node sobrescribe la cabecera Set-Cookie si la llamas dos veces seguidas —
+// hay que ACUMULAR en vez de reemplazar cuando queremos mandar varias cookies
+// a la vez (ej. cookie de cliente + cookie de admin en la misma respuesta).
+function appendSetCookie(res, cookieString) {
+    const existing = res.getHeader('Set-Cookie');
+    if (!existing) {
+        res.setHeader('Set-Cookie', cookieString);
+    } else if (Array.isArray(existing)) {
+        res.setHeader('Set-Cookie', [...existing, cookieString]);
+    } else {
+        res.setHeader('Set-Cookie', [existing, cookieString]);
     }
+}
 
-    if (req.method === 'POST') {
-        const { email, password } = req.body || {};
-        if (!email || !password) {
-            return res.status(400).json({ success: false, error: 'Falta email o contraseña' });
-        }
+export function getSessionFromRequest(req) {
+    return verifySession(getCookie(req, COOKIE_NAME));
+}
 
-        const ODOO_URL = process.env.ODOO_URL;
-        const ODOO_DB = process.env.ODOO_DB;
+export function setSessionCookie(res, token) {
+    appendSetCookie(res, `${COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
+}
 
-        if (!ODOO_URL || !ODOO_DB || !process.env.JWT_SECRET) {
-            return res.status(500).json({ success: false, error: 'Faltan variables de entorno en Vercel' });
-        }
+export function clearSessionCookie(res) {
+    appendSetCookie(res, `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+}
 
-        try {
-            // Odoo verifica el email/contraseña exactamente igual que si el cliente
-            // entrara por su propio portal — no reimplementamos ninguna lógica de contraseñas.
-            const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, email, password, {}]);
-            if (!uid) {
-                return res.status(401).json({ success: false, error: 'Email o contraseña incorrectos' });
-            }
+// --- SESIÓN DE ADMINISTRADOR (cookie e identidad separadas de la de clientes) ---
 
-            const userData = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
-                ODOO_DB, uid, password,
-                'res.users', 'read',
-                [[uid]],
-                { fields: ['name', 'email', 'partner_id'] }
-            ]);
+export function getAdminSessionFromRequest(req) {
+    const session = verifySession(getCookie(req, ADMIN_COOKIE_NAME));
+    return (session && session.role === 'admin') ? session : null;
+}
 
-            const user = userData[0];
-            const partnerId = Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id;
+export function setAdminSessionCookie(res, token) {
+    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
+}
 
-            // Comprobamos si esta cuenta es también Administrador de Odoo. Si lo es,
-            // dejamos ya abierta la sesión de admin de regalo (cookie aparte), para
-            // que pueda entrar al panel sin volver a escribir la contraseña.
-            let isAdmin = false;
-            try {
-                isAdmin = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
-                    ODOO_DB, uid, password,
-                    'res.users', 'has_group',
-                    ['base.group_system']
-                ]);
-            } catch (e) {
-                isAdmin = false; // si falla la comprobación, simplemente no se le ofrece el acceso admin
-            }
+export function clearAdminSessionCookie(res) {
+    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+}
 
-            if (isAdmin) {
-                const adminToken = signSession({ role: 'admin', uid, email: user.email || email });
-                setAdminSessionCookie(res, adminToken);
-            }
-
-            const token = signSession({ uid, email: user.email || email, name: user.name, partnerId, isAdmin });
-            setSessionCookie(res, token);
-
-            return res.status(200).json({ success: true, user: { name: user.name, email: user.email || email, isAdmin } });
-        } catch (err) {
-            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo' });
-        }
-    }
-
-    return res.status(405).json({ success: false, error: 'Método no permitido' });
+// Llamada genérica a Odoo por JSON-RPC (misma idea que en get-products.js)
+export async function callOdoo(odooUrl, service, method, args) {
+    const response = await fetch(`${odooUrl}/jsonrpc`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'call', params: { service, method, args }, id: Date.now() })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(JSON.stringify(data.error));
+    return data.result;
 }
