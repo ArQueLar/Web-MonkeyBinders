@@ -1,107 +1,249 @@
-// lib/auth.js
-// Utilidades compartidas por las funciones de autenticación (api/login.js,
-// api/register.js, api/me.js, api/logout.js, api/orders.js).
-// Vive fuera de la carpeta api/ a propósito: Vercel convierte en endpoint
-// público cualquier archivo dentro de api/, y esto es solo código interno.
+/* ==========================================================================
+   ACCOUNT PAGE — cuenta.html: perfil editable, cambio de contraseña y
+   pedidos, todo integrado en la página (no en un modal).
+   ========================================================================== */
 
-import crypto from 'crypto';
+import { checkSession, renderAuthForm, isPasswordStrongEnough, updatePasswordStrengthUI } from './auth.js';
+import { showToast } from './toast.js';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
-const COOKIE_NAME = 'mb_session';
-const ADMIN_COOKIE_NAME = 'mb_admin_session'; // separada a propósito: nunca se mezcla con la de un cliente
+const ORDER_STATE_LABELS = {
+    draft: 'Presupuesto',
+    sent: 'Presupuesto enviado',
+    sale: 'Confirmado',
+    done: 'Completado',
+    cancel: 'Cancelado'
+};
 
-function base64url(input) {
-    return Buffer.from(input).toString('base64')
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
+// Estado real del envío (viene de las transferencias de Inventario ligadas al pedido).
+// Puede no haber ninguno todavía (shippingState === null) si Odoo aún no ha generado
+// la transferencia, o si el módulo de Inventario no está en uso.
+const SHIPPING_STATE_INFO = {
+    draft: { label: 'Sin preparar', color: 'var(--text-muted)' },
+    waiting: { label: 'En preparación', color: '#e8a33d' },
+    confirmed: { label: 'En preparación', color: '#e8a33d' },
+    assigned: { label: 'Listo para enviar', color: '#3d8bd6' },
+    done: { label: 'Entregado', color: 'var(--accent-jungle)' },
+    cancel: { label: 'Envío cancelado', color: 'var(--accent-error)' }
+};
 
-function base64urlDecode(input) {
-    input = input.replace(/-/g, '+').replace(/_/g, '/');
-    while (input.length % 4) input += '=';
-    return Buffer.from(input, 'base64').toString('utf8');
-}
+export async function initAccountPage() {
+    const container = document.getElementById('account-page-content');
+    if (!container) return;
 
-function sign(body) {
-    return crypto.createHmac('sha256', JWT_SECRET).update(body).digest('base64')
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
+    container.innerHTML = `<div style="text-align:center; padding: 60px 0; color: var(--text-muted);">Comprobando sesión...</div>`;
 
-// Crea un token de sesión firmado (formato similar a un JWT, sin dependencias externas)
-export function signSession(payload) {
-    const body = base64url(JSON.stringify({ ...payload, iat: Date.now() }));
-    return `${body}.${sign(body)}`;
-}
+    const session = await checkSession();
 
-// Verifica el token y devuelve el payload si es válido, o null si no lo es / ha caducado
-export function verifySession(token) {
-    if (!token || !token.includes('.')) return null;
-    const [body, signature] = token.split('.');
-    if (sign(body) !== signature) return null; // firma no coincide: manipulado o corrupto
-    try {
-        const payload = JSON.parse(base64urlDecode(body));
-        if (Date.now() - payload.iat > SESSION_MAX_AGE_MS) return null; // caducado
-        return payload;
-    } catch {
-        return null;
-    }
-}
-
-export function getCookie(req, name) {
-    const cookies = req.headers.cookie || '';
-    const match = cookies.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-    return match ? decodeURIComponent(match[1]) : null;
-}
-
-// Node sobrescribe la cabecera Set-Cookie si la llamas dos veces seguidas —
-// hay que ACUMULAR en vez de reemplazar cuando queremos mandar varias cookies
-// a la vez (ej. cookie de cliente + cookie de admin en la misma respuesta).
-function appendSetCookie(res, cookieString) {
-    const existing = res.getHeader('Set-Cookie');
-    if (!existing) {
-        res.setHeader('Set-Cookie', cookieString);
-    } else if (Array.isArray(existing)) {
-        res.setHeader('Set-Cookie', [...existing, cookieString]);
+    if (session.loggedIn) {
+        renderDashboard(container, session.user);
     } else {
-        res.setHeader('Set-Cookie', [existing, cookieString]);
+        renderAuthForm(container, 'login', (user) => renderDashboard(container, user));
     }
 }
 
-export function getSessionFromRequest(req) {
-    return verifySession(getCookie(req, COOKIE_NAME));
-}
+function renderDashboard(container, user) {
+    container.innerHTML = `
+        <div class="account-layout">
+            <aside class="account-sidebar">
+                <div class="account-avatar">${user.name.charAt(0).toUpperCase()}</div>
+                <div class="account-name">${user.name}</div>
+                <div class="account-email">${user.email}</div>
+                <nav class="account-nav">
+                    <button class="account-nav-btn active" data-tab="profile">MI PERFIL</button>
+                    <button class="account-nav-btn" data-tab="orders">MIS PEDIDOS</button>
+                    ${user.isAdmin ? `<a href="/admin.html" class="account-nav-btn" style="display:block; text-decoration:none; color:var(--accent-jungle);">⚙ PANEL DE ADMINISTRACIÓN</a>` : ''}
+                    <button class="account-nav-btn" id="account-logout-btn">CERRAR SESIÓN</button>
+                </nav>
+            </aside>
+            <div class="account-main">
+                <div id="account-tab-profile" class="account-tab"></div>
+                <div id="account-tab-orders" class="account-tab" style="display:none;"></div>
+            </div>
+        </div>
+    `;
 
-export function setSessionCookie(res, token) {
-    appendSetCookie(res, `${COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
-}
+    renderProfileTab(user);
+    renderOrdersTab();
 
-export function clearSessionCookie(res) {
-    appendSetCookie(res, `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
-}
-
-// --- SESIÓN DE ADMINISTRADOR (cookie e identidad separadas de la de clientes) ---
-
-export function getAdminSessionFromRequest(req) {
-    const session = verifySession(getCookie(req, ADMIN_COOKIE_NAME));
-    return (session && session.role === 'admin') ? session : null;
-}
-
-export function setAdminSessionCookie(res, token) {
-    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
-}
-
-export function clearAdminSessionCookie(res) {
-    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
-}
-
-// Llamada genérica a Odoo por JSON-RPC (misma idea que en get-products.js)
-export async function callOdoo(odooUrl, service, method, args) {
-    const response = await fetch(`${odooUrl}/jsonrpc`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', method: 'call', params: { service, method, args }, id: Date.now() })
+    const tabBtns = container.querySelectorAll('.account-nav-btn[data-tab]');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            container.querySelectorAll('.account-tab').forEach(t => t.style.display = 'none');
+            document.getElementById(`account-tab-${btn.dataset.tab}`).style.display = 'block';
+        });
     });
-    const data = await response.json();
-    if (data.error) throw new Error(JSON.stringify(data.error));
-    return data.result;
+
+    document.getElementById('account-logout-btn').addEventListener('click', async () => {
+        await fetch('/api/session', { method: 'DELETE' });
+        window.location.reload();
+    });
+}
+
+function renderProfileTab(user) {
+    const tab = document.getElementById('account-tab-profile');
+    tab.innerHTML = `
+        <h2 class="section-title" style="font-size:20px; margin-bottom:20px;">MI PERFIL</h2>
+
+        <form id="profile-form" style="max-width:400px; display:flex; flex-direction:column; gap:12px;">
+            <div class="option-group-title">NOMBRE</div>
+            <input type="text" name="name" class="form-input" value="${user.name}" required>
+            <div class="option-group-title">CORREO ELECTRÓNICO</div>
+            <input type="email" class="form-input" value="${user.email}" disabled style="opacity:0.6;">
+            <button type="submit" class="btn-primary" id="profile-save-btn" style="width:fit-content; padding:10px 20px; margin-top:6px;">GUARDAR CAMBIOS</button>
+            <div id="profile-status" style="font-size:12.5px; display:none;"></div>
+        </form>
+
+        <h3 style="font-size:16px; margin:32px 0 14px;">CAMBIAR CONTRASEÑA</h3>
+        <form id="password-form" style="max-width:400px; display:flex; flex-direction:column; gap:12px;">
+            <input type="password" name="currentPassword" placeholder="Contraseña actual" class="form-input" required>
+            <input type="password" name="newPassword" id="new-password-input" placeholder="Nueva contraseña" class="form-input" required minlength="8">
+            <div style="text-align:left; margin-top:-6px;">
+                <div style="height:5px; background:var(--border-color); border-radius:4px; overflow:hidden;">
+                    <div id="password-strength-bar" style="height:100%; width:0%; transition: width 0.25s ease, background 0.25s ease;"></div>
+                </div>
+                <div id="password-strength-label" style="font-size:11px; margin-top:4px; min-height:14px;"></div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</div>
+            </div>
+            <button type="submit" class="btn-secondary" id="password-save-btn" style="width:fit-content; padding:10px 20px;">CAMBIAR CONTRASEÑA</button>
+            <div id="password-change-status" style="font-size:12.5px; display:none;"></div>
+        </form>
+    `;
+
+    // --- Guardar nombre ---
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('profile-save-btn');
+        const statusEl = document.getElementById('profile-status');
+        const formData = new FormData(e.target);
+
+        btn.disabled = true;
+        btn.textContent = 'GUARDANDO...';
+        statusEl.style.display = 'none';
+
+        try {
+            const r = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: formData.get('name') })
+            });
+            const result = await r.json();
+
+            if (result.success) {
+                showToast('✓ Perfil actualizado');
+                document.querySelector('.account-name').textContent = result.user.name;
+            } else {
+                statusEl.textContent = result.error || 'No se pudo guardar el cambio.';
+                statusEl.className = 'form-status-error';
+                statusEl.style.display = 'block';
+            }
+        } catch (err) {
+            statusEl.textContent = 'Error de conexión. Inténtalo de nuevo más tarde.';
+            statusEl.className = 'form-status-error';
+            statusEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'GUARDAR CAMBIOS';
+        }
+    });
+
+    // --- Barra de fortaleza en la nueva contraseña ---
+    document.getElementById('new-password-input').addEventListener('input', (e) => updatePasswordStrengthUI(e.target.value));
+
+    // --- Cambiar contraseña ---
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('password-save-btn');
+        const statusEl = document.getElementById('password-change-status');
+        const formData = new FormData(e.target);
+        const newPassword = formData.get('newPassword');
+
+        if (!isPasswordStrongEnough(newPassword)) {
+            statusEl.textContent = 'La nueva contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula, número y símbolo.';
+            statusEl.className = 'form-status-error';
+            statusEl.style.display = 'block';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'CAMBIANDO...';
+        statusEl.style.display = 'none';
+
+        try {
+            const r = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    currentPassword: formData.get('currentPassword'),
+                    newPassword
+                })
+            });
+            const result = await r.json();
+
+            if (result.success) {
+                showToast('✓ Contraseña actualizada');
+                e.target.reset();
+                updatePasswordStrengthUI('');
+            } else {
+                statusEl.textContent = result.error || 'No se pudo cambiar la contraseña.';
+                statusEl.className = 'form-status-error';
+                statusEl.style.display = 'block';
+            }
+        } catch (err) {
+            statusEl.textContent = 'Error de conexión. Inténtalo de nuevo más tarde.';
+            statusEl.className = 'form-status-error';
+            statusEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'CAMBIAR CONTRASEÑA';
+        }
+    });
+}
+
+async function renderOrdersTab() {
+    const tab = document.getElementById('account-tab-orders');
+    tab.innerHTML = `
+        <h2 class="section-title" style="font-size:20px; margin-bottom:20px;">MIS PEDIDOS</h2>
+        <div id="orders-list"><p style="text-align:center; color:var(--text-muted); font-size:13px; padding:30px 0;">Cargando pedidos...</p></div>
+    `;
+
+    const ordersList = document.getElementById('orders-list');
+    try {
+        const r = await fetch('/api/orders');
+        const data = await r.json();
+
+        if (!data.success) {
+            ordersList.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px 0;">No se pudieron cargar los pedidos.</p>`;
+            return;
+        }
+
+        if (data.orders.length === 0) {
+            ordersList.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px 0;">Todavía no tienes ningún pedido.</p>`;
+            return;
+        }
+
+        ordersList.innerHTML = data.orders.map(o => {
+            const shippingInfo = o.shippingState ? SHIPPING_STATE_INFO[o.shippingState] : null;
+            return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-color); gap:10px; flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:14px; font-weight:700; color:var(--text-primary);">${o.name}</div>
+                    <div style="font-size:12px; color:var(--text-muted);">${new Date(o.date_order).toLocaleDateString('es-ES')} · ${ORDER_STATE_LABELS[o.state] || o.state}</div>
+                    ${shippingInfo ? `
+                        <div style="margin-top:6px; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:${shippingInfo.color};">
+                            <span style="width:7px; height:7px; border-radius:50%; background:${shippingInfo.color}; display:inline-block;"></span>
+                            ${shippingInfo.label}
+                        </div>
+                    ` : `
+                        <div style="margin-top:6px; font-size:11px; color:var(--text-muted);">Sin información de envío todavía</div>
+                    `}
+                </div>
+                <div style="font-size:15px; font-weight:800; color:var(--accent-jungle);">${o.amount_total.toFixed(2)} €</div>
+            </div>
+        `;
+        }).join('');
+    } catch (err) {
+        ordersList.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px 0;">No se pudieron cargar los pedidos.</p>`;
+    }
 }
