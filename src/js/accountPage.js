@@ -14,6 +14,18 @@ const ORDER_STATE_LABELS = {
     cancel: 'Cancelado'
 };
 
+// Estado real del envío (viene de las transferencias de Inventario ligadas al pedido).
+// Puede no haber ninguno todavía (shippingState === null) si Odoo aún no ha generado
+// la transferencia, o si el módulo de Inventario no está en uso.
+const SHIPPING_STATE_INFO = {
+    draft: { label: 'Sin preparar', color: 'var(--text-muted)' },
+    waiting: { label: 'En preparación', color: '#e8a33d' },
+    confirmed: { label: 'En preparación', color: '#e8a33d' },
+    assigned: { label: 'Listo para enviar', color: '#3d8bd6' },
+    done: { label: 'Entregado', color: 'var(--accent-jungle)' },
+    cancel: { label: 'Envío cancelado', color: 'var(--accent-error)' }
+};
+
 export async function initAccountPage() {
     const container = document.getElementById('account-page-content');
     if (!container) return;
@@ -210,15 +222,26 @@ async function renderOrdersTab() {
             return;
         }
 
-        ordersList.innerHTML = data.orders.map(o => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-color);">
+        ordersList.innerHTML = data.orders.map(o => {
+            const shippingInfo = o.shippingState ? SHIPPING_STATE_INFO[o.shippingState] : null;
+            return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-color); gap:10px; flex-wrap:wrap;">
                 <div>
                     <div style="font-size:14px; font-weight:700; color:var(--text-primary);">${o.name}</div>
                     <div style="font-size:12px; color:var(--text-muted);">${new Date(o.date_order).toLocaleDateString('es-ES')} · ${ORDER_STATE_LABELS[o.state] || o.state}</div>
+                    ${shippingInfo ? `
+                        <div style="margin-top:6px; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:${shippingInfo.color};">
+                            <span style="width:7px; height:7px; border-radius:50%; background:${shippingInfo.color}; display:inline-block;"></span>
+                            ${shippingInfo.label}
+                        </div>
+                    ` : `
+                        <div style="margin-top:6px; font-size:11px; color:var(--text-muted);">Sin información de envío todavía</div>
+                    `}
                 </div>
                 <div style="font-size:15px; font-weight:800; color:var(--accent-jungle);">${o.amount_total.toFixed(2)} €</div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     } catch (err) {
         ordersList.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px 0;">No se pudieron cargar los pedidos.</p>`;
     }

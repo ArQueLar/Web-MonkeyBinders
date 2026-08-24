@@ -38,7 +38,46 @@ export default async function handler(req, res) {
             }
         ]);
 
-        return res.status(200).json({ success: true, orders });
+        // --- ESTADO REAL DE ENVÍO (stock.picking) ---
+        // El estado de "sale.order" solo dice si el pedido está confirmado, no si ya se
+        // ha preparado/enviado/entregado — eso vive en las transferencias de Inventario,
+        // relacionadas con cada pedido mediante el campo "sale_id".
+        const orderIds = orders.map(o => o.id);
+        let pickingsByOrderId = {};
+
+        if (orderIds.length > 0) {
+            try {
+                const pickings = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+                    ODOO_DB, uid, ODOO_API_KEY,
+                    'stock.picking', 'search_read',
+                    [[
+                        ['sale_id', 'in', orderIds],
+                        ['picking_type_id.code', '=', 'outgoing'] // solo envíos AL cliente, no recepciones/devoluciones
+                    ]],
+                    { fields: ['sale_id', 'state', 'date_done', 'scheduled_date'], order: 'id desc' }
+                ]);
+                pickings.forEach(p => {
+                    const orderId = Array.isArray(p.sale_id) ? p.sale_id[0] : p.sale_id;
+                    if (!pickingsByOrderId[orderId]) pickingsByOrderId[orderId] = [];
+                    pickingsByOrderId[orderId].push(p);
+                });
+            } catch (e) {
+                // Si el módulo de Inventario no está instalado o algo falla aquí, seguimos
+                // sin datos de envío en vez de romper la lista de pedidos entera.
+            }
+        }
+
+        const ordersWithShipping = orders.map(o => {
+            const pickings = pickingsByOrderId[o.id] || [];
+            const latestPicking = pickings[0]; // ya vienen ordenadas de más reciente a más antigua
+            return {
+                ...o,
+                shippingState: latestPicking ? latestPicking.state : null,
+                shippingDate: latestPicking ? (latestPicking.date_done || latestPicking.scheduled_date) : null
+            };
+        });
+
+        return res.status(200).json({ success: true, orders: ordersWithShipping });
     } catch (err) {
         return res.status(500).json({ success: false, error: 'Error al leer los pedidos de Odoo' });
     }
