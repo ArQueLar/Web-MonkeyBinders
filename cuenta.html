@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cuenta | Monkey Binders</title>
+    <link rel="icon" href="/assets/Cosas Web/Logo/Monkey.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/src/css/styles.css">
+</head>
+
+<body>
+
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <div class="announcement-item">
+                <span>🚚</span>
+                <span>Envío gratis en pedidos superiores a 200€</span>
+            </div>
+            <div class="announcement-item">
+                <span>⚡</span>
+                <span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span>
+            </div>
+        </div>
+    </div>
+
+    <header class="main-header" id="main-header">
+        <div class="header-container">
+            <a href="/index.html" class="brand-logo" id="logo-link">
+                <img src="/assets/Cosas Web/Logo/Logo.png" alt="Monkey Binders Logo" id="header-logo-img">
+            </a>
+
+            <nav class="nav-container">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="/index.html" class="nav-link">Inicio</a></li>
+                    <li class="nav-item"><a href="/tienda/tienda.html" class="nav-link">Tienda</a></li>
+                    <li class="nav-item"><a href="/tienda/tienda.html#customizer" class="nav-link">Personalizar</a></li>
+                    <li class="nav-item"><a href="/index.html#about" class="nav-link">Sobre Nosotros</a></li>
+                    <li class="nav-item"><a href="/index.html#reviews" class="nav-link">Comunidad</a></li>
+                    <li class="nav-item"><a href="/index.html#contact" class="nav-link">Contacto</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <button class="icon-btn" id="theme-toggle-btn" title="Alternar Tema">
+                    <img src="/assets/Cosas Web/svg/luna.svg" alt="Tema" class="header-icon-svg" id="theme-icon">
+                </button>
+                <button class="icon-btn" id="search-toggle-btn" title="Buscar Productos">
+                    <img src="/assets/Cosas Web/svg/lupa.svg" alt="Buscar" class="header-icon-svg">
+                </button>
+                <button class="icon-btn" id="account-toggle-btn" title="Cuenta de Usuario">
+                    <img src="/assets/Cosas Web/svg/perfil.svg" alt="Perfil" class="header-icon-svg">
+                </button>
+                <button class="icon-btn" id="cart-toggle-btn" title="Carrito de Compras">
+                    <img src="/assets/Cosas Web/svg/carrito.svg" alt="Carrito" class="header-icon-svg">
+                    <span class="badge-count" id="cart-count-badge">0</span>
+                </button>
+                <button class="icon-btn mobile-only-btn" id="mobile-menu-toggle-btn" title="Menú Móvil">
+                    ☰
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO DE LA PÁGINA DE CUENTA (generado dinámicamente desde accountPage.js) -->
+    <main style="max-width: 1100px; margin: 50px auto; padding: 0 20px; min-height: 50vh;" id="account-page-content">
+    </main>
+
+    <footer class="main-footer" id="contact">
+        <div class="footer-container">
+            <div>
+                <div class="footer-brand-title">MONKEY BINDERS</div>
+                <p style="font-size:13px; max-width:320px; line-height:1.6;">
+                    Diseño y fabricación de binders personalizados grabados a láser para coleccionistas exigentes de
+                    cartas Pokémon y otros TCGs.
+                </p>
+                <div style="margin-top:16px; font-size:13px; color:#f3cf55;">
+                    ✉️ <strong>monkeybinders@gmail.com</strong>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-col-title">NAVEGACIÓN</div>
+                <ul class="footer-links">
+                    <li><a href="/index.html">Inicio</a></li>
+                    <li><a href="/tienda/tienda.html">Tienda Completa</a></li>
+                    <li><a href="/index.html#about">Sobre Nosotros</a></li>
+                    <li><a href="/tienda/tienda.html#customizer">Personalizar Binder</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-col-title">REDES OFICIALES</div>
+                <ul class="footer-links">
+                    <li><a href="https://t.me/MonkeyBinders" target="_blank"><img
+                                src="/assets/Cosas Web/svg/telegram.svg" alt="Telegram" class="redes-svg"> Canal de
+                            Telegram</a></li>
+                    <li><a href="https://www.instagram.com/monkeybinders" target="_blank"><img
+                                src="/assets/Cosas Web/svg/instagram.svg" alt="Instagram" class="redes-svg">
+                            Instagram</a></li>
+                    <li><a href="https://www.tiktok.com/@monkeybinders" target="_blank"><img
+                                src="/assets/Cosas Web/svg/tiktok.svg" alt="TikTok" class="redes-svg"> TikTok</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-col-title">ATENCIÓN & CLUB</div>
+                <div style="font-size:12px; color:#d1d1d1; margin-bottom:10px;">
+                    ¿Quieres un binder grabado con tu propio logo o personaje? ¡Contáctanos!
+                </div>
+                <form class="newsletter-form"
+                    onsubmit="event.preventDefault(); alert('¡Gracias por unirte al Monkey Club!');">
+                    <input type="email" placeholder="Tu email..." class="newsletter-input" required>
+                    <button type="submit" class="btn-primary" style="padding:10px 16px;">OK</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>© 2026 Monkey Binders. Todos los derechos reservados.</div>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div class="payment-icons">
+                    <img src="/assets/Cosas Web/pagos/visa.png" alt="Visa" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/mastercard.svg" alt="Mastercard" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/applepay.png" alt="Apple Pay" class="payment-icon">
+                    <img src="/assets/Cosas Web/pagos/googlepay.png" alt="Google Pay" class="payment-icon">
+                </div>
+                <span class="secure-shipping">🔒 Envíos Seguros</span>
+            </div>
+        </div>
+    </footer>
+
+    <div class="cart-drawer-overlay" id="cart-drawer-overlay">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <div class="cart-title">
+                    <span>TU CARRITO</span>
+                </div>
+                <button class="close-drawer-btn" id="close-cart-btn">✕</button>
+            </div>
+
+            <div class="cart-items-list" id="cart-items-list"></div>
+
+            <div class="cart-footer">
+                <div class="cart-subtotal">
+                    <span>SUBTOTAL:</span>
+                    <span id="cart-subtotal">0.00 €</span>
+                </div>
+                <button class="checkout-btn" onclick="alert('¡Redirigiendo al checkout seguro de Monkey Binders!')">
+                    FINALIZAR COMPRA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+        <div class="mobile-nav-drawer">
+            <div class="mobile-nav-header">
+                <span style="font-weight:800; color:var(--accent-jungle);">MONKEY BINDERS</span>
+                <button class="close-drawer-btn" id="close-mobile-nav-btn">✕</button>
+            </div>
+            <ul class="mobile-nav-list">
+                <li><a href="/index.html">Inicio</a></li>
+                <li><a href="/tienda/tienda.html">Tienda</a></li>
+                <li><a href="/tienda/tienda.html#customizer">Personalizar</a></li>
+                <li><a href="/index.html#about">Sobre Nosotros</a></li>
+                <li><a href="/index.html#reviews">Comunidad</a></li>
+                <li><a href="/index.html#contact">Contacto</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);"
+                id="close-modal-btn">✕</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script type="module" src="/src/js/main.js"></script>
+</body>
+
+</html>

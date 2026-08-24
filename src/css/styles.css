@@ -2349,3 +2349,115 @@ footer.main-footer {
         text-align: center;
     }
 }
+/* ==========================================================================
+   ACCOUNT PAGE — cuenta.html: barra lateral + pestañas de Perfil/Pedidos
+   ========================================================================== */
+.account-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 40px;
+}
+
+.account-sidebar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px 20px;
+    text-align: center;
+    height: fit-content;
+}
+
+.account-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--accent-jungle);
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px auto;
+}
+
+.account-name {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.account-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    word-break: break-all;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.account-nav-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--transition-fast);
+}
+
+.account-nav-btn:hover {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+}
+
+.account-nav-btn.active {
+    background: var(--bg-surface);
+    border-color: var(--accent-jungle);
+    color: var(--accent-jungle);
+}
+
+.account-nav-btn#account-logout-btn {
+    margin-top: 10px;
+    color: var(--accent-error);
+}
+
+.account-main {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 30px;
+    min-height: 300px;
+}
+
+@media (max-width: 768px) {
+    .account-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .account-sidebar {
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .account-avatar {
+        margin: 0;
+    }
+
+    .account-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-top: 14px;
+    }
+}
