@@ -61,7 +61,7 @@ export default async function handler(req, res) {
                 isAdmin = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
                     ODOO_DB, uid, password,
                     'res.users', 'has_group',
-                    ['base.group_system']
+                    [[uid], 'base.group_system'] // [uid] = "sobre qué registro se ejecuta", luego el argumento real de has_group
                 ]);
             } catch (e) {
                 isAdmin = false; // si falla la comprobación, simplemente no se le ofrece el acceso admin
