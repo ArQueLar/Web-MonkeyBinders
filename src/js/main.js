@@ -12,6 +12,7 @@ import { initCatalog } from './products.js';
 import { initProductDetail } from './productDetail.js';
 import { initCustomizerForm } from './customizerForm.js';
 import { initAccountPage } from './accountPage.js';
+import { initAdminPage } from './adminPage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -22,4 +23,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initProductDetail();   // producto.html — dispara su propia carga de Odoo si hace falta
     initCustomizerForm();  // formulario de personalización de tienda.html
     initAccountPage();     // cuenta.html — perfil, contraseña y pedidos
+    initAdminPage();       // admin.html — panel de administración (solo personal)
 });

@@ -9,6 +9,7 @@ import crypto from 'crypto';
 const JWT_SECRET = process.env.JWT_SECRET;
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
 const COOKIE_NAME = 'mb_session';
+const ADMIN_COOKIE_NAME = 'mb_admin_session'; // separada a propósito: nunca se mezcla con la de un cliente
 
 function base64url(input) {
     return Buffer.from(input).toString('base64')
@@ -62,6 +63,21 @@ export function setSessionCookie(res, token) {
 
 export function clearSessionCookie(res) {
     res.setHeader('Set-Cookie', `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+}
+
+// --- SESIÓN DE ADMINISTRADOR (cookie e identidad separadas de la de clientes) ---
+
+export function getAdminSessionFromRequest(req) {
+    const session = verifySession(getCookie(req, ADMIN_COOKIE_NAME));
+    return (session && session.role === 'admin') ? session : null;
+}
+
+export function setAdminSessionCookie(res, token) {
+    res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
+}
+
+export function clearAdminSessionCookie(res) {
+    res.setHeader('Set-Cookie', `${ADMIN_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
 }
 
 // Llamada genérica a Odoo por JSON-RPC (misma idea que en get-products.js)

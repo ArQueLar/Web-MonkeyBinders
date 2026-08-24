@@ -12,7 +12,8 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         tienda: resolve(__dirname, 'tienda/tienda.html'),
         producto: resolve(__dirname, 'tienda/producto.html'),
-        cuenta: resolve(__dirname, 'cuenta.html')
+        cuenta: resolve(__dirname, 'cuenta.html'),
+        admin: resolve(__dirname, 'admin.html')
       }
     }
   },
