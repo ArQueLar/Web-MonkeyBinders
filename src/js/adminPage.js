@@ -92,7 +92,7 @@ function renderDashboard(container) {
                 <button class="btn-secondary admin-tab-btn active" data-tab="production" style="padding:8px 16px; font-size:12px;">PRODUCCIÓN</button>
                 <button class="btn-secondary admin-tab-btn" data-tab="orders" style="padding:8px 16px; font-size:12px;">TODOS LOS PEDIDOS</button>
                 <a href="/cuenta.html" class="btn-secondary" id="admin-exit-btn" style="padding:8px 16px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center;">SALIR</a>
-                <button class="btn-secondary" id="admin-logout-btn" style="padding:8px 16px; font-size:12px; color:var(--accent-error);">CERRAR SESIÓN</button>
+                <button class="btn-secondary" id="admin-logout-btn" style="padding:8px 16px; font-size:12px; color:var(--accent-error); border-color:var(--accent-error);">CERRAR SESIÓN</button>
             </div>
         </div>
         <div id="admin-tab-production" class="account-tab"></div>
