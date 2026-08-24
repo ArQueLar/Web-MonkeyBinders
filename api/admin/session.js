@@ -43,7 +43,7 @@ export default async function handler(req, res) {
             const isAdmin = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
                 ODOO_DB, uid, password,
                 'res.users', 'has_group',
-                ['base.group_system']
+                [[uid], 'base.group_system'] // [uid] = "sobre qué registro se ejecuta", luego el argumento real de has_group
             ]);
 
             if (!isAdmin) {
@@ -55,8 +55,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({ success: true });
         } catch (err) {
-            // Detalle temporal para depurar — lo quitamos en cuanto sepamos qué falla.
-            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo', detail: err.message });
+            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo' });
         }
     }
 
