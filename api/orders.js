@@ -27,7 +27,10 @@ export default async function handler(req, res) {
         const orders = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
             ODOO_DB, uid, ODOO_API_KEY,
             'sale.order', 'search_read',
-            [[['partner_id', '=', session.partnerId]]],
+            [[
+                ['partner_id', '=', session.partnerId],
+                ['state', 'in', ['sale', 'done']] // solo pedidos confirmados de verdad, no presupuestos/borradores sin confirmar
+            ]],
             {
                 fields: ['name', 'date_order', 'amount_total', 'state'],
                 order: 'date_order desc',
