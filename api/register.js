@@ -5,7 +5,7 @@
 // usuario hay que darle permiso de Administración ("Ajustes") en Odoo, para que
 // pueda crear usuarios además de solo leer productos.
 
-import { callOdoo, signSession, setSessionCookie } from '../lib/auth.js';
+import { callOdoo, signSession, setSessionCookie } from './_lib/auth.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
                 login: email,
                 email,
                 password,
-                groups_id: [[6, 0, [portalGroupId]]]
+                group_ids: [[6, 0, [portalGroupId]]] // en Odoo 19 se llama "group_ids" (antes "groups_id")
             }]
         ]);
 
