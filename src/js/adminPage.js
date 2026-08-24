@@ -91,7 +91,8 @@ function renderDashboard(container) {
             <div style="display:flex; gap:10px;">
                 <button class="btn-secondary admin-tab-btn active" data-tab="production" style="padding:8px 16px; font-size:12px;">PRODUCCIÓN</button>
                 <button class="btn-secondary admin-tab-btn" data-tab="orders" style="padding:8px 16px; font-size:12px;">TODOS LOS PEDIDOS</button>
-                <button class="btn-secondary" id="admin-logout-btn" style="padding:8px 16px; font-size:12px; color:var(--accent-error);">SALIR</button>
+                <a href="/cuenta.html" class="btn-secondary" id="admin-exit-btn" style="padding:8px 16px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center;">SALIR</a>
+                <button class="btn-secondary" id="admin-logout-btn" style="padding:8px 16px; font-size:12px; color:var(--accent-error);">CERRAR SESIÓN</button>
             </div>
         </div>
         <div id="admin-tab-production" class="account-tab"></div>
@@ -108,6 +109,10 @@ function renderDashboard(container) {
         });
     });
 
+    // "SALIR" solo te lleva de vuelta a tu cuenta normal, sin cerrar la sesión de admin
+    // (así puedes volver al panel directamente sin tener que iniciar sesión otra vez).
+
+    // "CERRAR SESIÓN" sí cierra la sesión de admin de verdad.
     document.getElementById('admin-logout-btn').addEventListener('click', async () => {
         await fetch('/api/admin/session', { method: 'DELETE' });
         window.location.reload();
