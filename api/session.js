@@ -1,23 +1,24 @@
-// api/admin/session.js
-// Gestiona la sesión de administrador en UN SOLO endpoint (mismo motivo que
-// api/session.js: el límite de 12 funciones del plan gratuito de Vercel):
-//   GET    -> comprueba si hay sesión de admin activa (antes admin/me.js)
-//   POST   -> login, body: { email, password } (antes admin/login.js)
-//   DELETE -> logout (antes admin/logout.js)
-//
-// Solo deja entrar (POST) a usuarios de Odoo con permiso de Administración →
-// "Ajustes" (base.group_system), sean quienes sean.
+// api/session.js
+// Gestiona toda la sesión de cliente en UN SOLO endpoint (el plan gratuito de
+// Vercel limita a 12 funciones serverless por despliegue, así que agrupamos
+// por método HTTP en vez de tener un archivo por acción):
+//   GET    -> comprueba si hay sesión activa (antes era api/me.js)
+//   POST   -> inicia sesión, body: { email, password } (antes era api/login.js)
+//   DELETE -> cierra sesión (antes era api/logout.js)
 
-import { callOdoo, signSession, setAdminSessionCookie, clearAdminSessionCookie, getAdminSessionFromRequest } from '../_lib/auth.js';
+import { callOdoo, signSession, setSessionCookie, clearSessionCookie, getSessionFromRequest } from './_lib/auth.js';
 
 export default async function handler(req, res) {
     if (req.method === 'GET') {
-        const session = getAdminSessionFromRequest(req);
-        return res.status(200).json({ success: true, loggedIn: Boolean(session) });
+        const session = getSessionFromRequest(req);
+        if (!session) {
+            return res.status(200).json({ success: true, loggedIn: false });
+        }
+        return res.status(200).json({ success: true, loggedIn: true, user: { name: session.name, email: session.email } });
     }
 
     if (req.method === 'DELETE') {
-        clearAdminSessionCookie(res);
+        clearSessionCookie(res);
         return res.status(200).json({ success: true });
     }
 
@@ -35,28 +36,29 @@ export default async function handler(req, res) {
         }
 
         try {
+            // Odoo verifica el email/contraseña exactamente igual que si el cliente
+            // entrara por su propio portal — no reimplementamos ninguna lógica de contraseñas.
             const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, email, password, {}]);
             if (!uid) {
                 return res.status(401).json({ success: false, error: 'Email o contraseña incorrectos' });
             }
 
-            const isAdmin = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+            const userData = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
                 ODOO_DB, uid, password,
-                'res.users', 'has_group',
-                ['base.group_system']
+                'res.users', 'read',
+                [[uid]],
+                { fields: ['name', 'email', 'partner_id'] }
             ]);
 
-            if (!isAdmin) {
-                return res.status(401).json({ success: false, error: 'Email o contraseña incorrectos' });
-            }
+            const user = userData[0];
+            const partnerId = Array.isArray(user.partner_id) ? user.partner_id[0] : user.partner_id;
 
-            const token = signSession({ role: 'admin', uid, email });
-            setAdminSessionCookie(res, token);
+            const token = signSession({ uid, email: user.email || email, name: user.name, partnerId });
+            setSessionCookie(res, token);
 
-            return res.status(200).json({ success: true });
+            return res.status(200).json({ success: true, user: { name: user.name, email: user.email || email } });
         } catch (err) {
-            // Detalle temporal para depurar — lo quitamos en cuanto sepamos qué falla.
-            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo', detail: err.message });
+            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo' });
         }
     }
 
