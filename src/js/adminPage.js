@@ -92,7 +92,7 @@ function renderDashboard(container) {
                 <button class="btn-secondary admin-tab-btn active" data-tab="production" style="padding:8px 16px; font-size:12px;">PRODUCCIÓN</button>
                 <button class="btn-secondary admin-tab-btn" data-tab="orders" style="padding:8px 16px; font-size:12px;">TODOS LOS PEDIDOS</button>
                 <a href="/cuenta.html" class="btn-secondary" id="admin-exit-btn" style="padding:8px 16px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center;">SALIR</a>
-                <button class="btn-secondary" id="admin-logout-btn" style="padding:8px 16px; font-size:12px; color:var(--accent-error); border-color:var(--accent-error);">CERRAR SESIÓN</button>
+                <button id="admin-logout-btn" style="padding:10px 22px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; border-radius:var(--radius-sm); background-color:var(--bg-card); color:var(--accent-error); border:2px solid var(--accent-error); cursor:pointer; transition:all var(--transition-fast);">CERRAR SESIÓN</button>
             </div>
         </div>
         <div id="admin-tab-production" class="account-tab"></div>
@@ -113,9 +113,18 @@ function renderDashboard(container) {
     // (así puedes volver al panel directamente sin tener que iniciar sesión otra vez).
 
     // "CERRAR SESIÓN" sí cierra la sesión de admin de verdad.
-    document.getElementById('admin-logout-btn').addEventListener('click', async () => {
+    const logoutBtn = document.getElementById('admin-logout-btn');
+    logoutBtn.addEventListener('click', async () => {
         await fetch('/api/admin/session', { method: 'DELETE' });
         window.location.reload();
+    });
+    logoutBtn.addEventListener('mouseenter', () => {
+        logoutBtn.style.backgroundColor = 'var(--accent-error)';
+        logoutBtn.style.color = '#ffffff';
+    });
+    logoutBtn.addEventListener('mouseleave', () => {
+        logoutBtn.style.backgroundColor = 'var(--bg-card)';
+        logoutBtn.style.color = 'var(--accent-error)';
     });
 
     loadOrders();
