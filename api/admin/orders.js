@@ -1,7 +1,12 @@
 // api/admin/orders.js
 // Trae TODOS los pedidos confirmados (de cualquier cliente), con sus líneas
-// (para saber qué hay que fabricar) y su estado real de envío. Solo accesible
-// con sesión de administrador.
+// (para saber qué hay que fabricar) y su estado real de envío. También
+// gestiona el cambio de estado de envío en el mismo archivo (antes era
+// admin/update-shipping.js, fusionado aquí por el límite de 12 funciones
+// serverless del plan gratuito de Vercel):
+//   GET  -> lista todos los pedidos
+//   POST -> cambia el estado de una transferencia, body: { pickingId, action }
+// Solo accesible con sesión de administrador.
 
 import { getAdminSessionFromRequest, callOdoo } from '../_lib/auth.js';
 
@@ -16,6 +21,38 @@ export default async function handler(req, res) {
     const ODOO_LOGIN = process.env.ODOO_LOGIN;
     const ODOO_API_KEY = process.env.ODOO_API_KEY;
 
+    // --- POST: cambiar el estado de una transferencia de envío ---
+    if (req.method === 'POST') {
+        const { pickingId, action } = req.body || {};
+        if (!pickingId || !['ready', 'deliver'].includes(action)) {
+            return res.status(400).json({ success: false, error: 'Datos inválidos' });
+        }
+
+        try {
+            const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, ODOO_LOGIN, ODOO_API_KEY, {}]);
+            if (!uid) {
+                return res.status(500).json({ success: false, error: 'No se pudo autenticar con Odoo' });
+            }
+
+            const method = action === 'ready' ? 'action_assign' : 'button_validate';
+
+            await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'stock.picking', method,
+                [[pickingId]]
+            ]);
+
+            return res.status(200).json({ success: true });
+        } catch (err) {
+            return res.status(500).json({ success: false, error: 'No se pudo actualizar el envío en Odoo', detail: err.message });
+        }
+    }
+
+    if (req.method !== 'GET') {
+        return res.status(405).json({ success: false, error: 'Método no permitido' });
+    }
+
+    // --- GET: listar todos los pedidos ---
     try {
         const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, ODOO_LOGIN, ODOO_API_KEY, {}]);
         if (!uid) {
