@@ -66,8 +66,8 @@ export function initNavigation() {
             openModal(`
                 <div style="text-align:center; padding: 10px;">
                     <span class="section-tag">BÚSQUEDA RÁPIDA</span>
-                    <h2 class="section-title" style="font-size: 20px; margin-bottom: 15px;">¿QUÉ BUSCAS?</h2>
-                    <input type="text" id="quick-search-input" placeholder="Busca tu binder..." class="newsletter-input" style="background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border-color); width:100%; padding:12px; font-size:14px;">
+                    <h2 class="section-title" style="font-size: 20px; margin-bottom: 15px;">ENCONTRAR BINDER</h2>
+                    <input type="text" id="quick-search-input" placeholder="Escribe Charizard, Mew, 12P..." class="newsletter-input" style="background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border-color); width:100%; padding:12px; font-size:14px;">
                     <div id="quick-search-results" style="margin-top:15px; text-align:left; max-height:200px; overflow-y:auto;"></div>
                 </div>
             `);

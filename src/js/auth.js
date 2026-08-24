@@ -6,7 +6,7 @@
 
 export async function checkSession() {
     try {
-        const r = await fetch('/api/me');
+        const r = await fetch('/api/session');
         return await r.json();
     } catch (e) {
         return { loggedIn: false };
@@ -118,7 +118,7 @@ export function renderAuthForm(container, mode, onSuccess) {
         errorEl.style.display = 'none';
 
         try {
-            const response = await fetch(isLogin ? '/api/login' : '/api/register', {
+            const response = await fetch(isLogin ? '/api/session' : '/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

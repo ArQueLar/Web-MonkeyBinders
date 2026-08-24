@@ -75,7 +75,7 @@ function renderDashboard(container, user) {
     });
 
     document.getElementById('account-logout-btn').addEventListener('click', async () => {
-        await fetch('/api/logout', { method: 'POST' });
+        await fetch('/api/session', { method: 'DELETE' });
         window.location.reload();
     });
 }

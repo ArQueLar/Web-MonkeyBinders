@@ -22,7 +22,7 @@ export async function initAdminPage() {
 
     let session;
     try {
-        const r = await fetch('/api/admin/me');
+        const r = await fetch('/api/admin/session');
         session = await r.json();
     } catch (e) {
         session = { loggedIn: false };
@@ -60,7 +60,7 @@ function renderAdminLogin(container) {
         errorEl.style.display = 'none';
 
         try {
-            const r = await fetch('/api/admin/login', {
+            const r = await fetch('/api/admin/session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(Object.fromEntries(formData.entries()))
@@ -109,7 +109,7 @@ function renderDashboard(container) {
     });
 
     document.getElementById('admin-logout-btn').addEventListener('click', async () => {
-        await fetch('/api/admin/logout', { method: 'POST' });
+        await fetch('/api/admin/session', { method: 'DELETE' });
         window.location.reload();
     });
 
@@ -225,7 +225,7 @@ function renderOrdersTab(tab, orders) {
 
 async function updateShipping(pickingId, action) {
     try {
-        const r = await fetch('/api/admin/update-shipping', {
+        const r = await fetch('/api/admin/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pickingId: Number(pickingId), action })
