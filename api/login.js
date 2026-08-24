@@ -4,7 +4,7 @@
 // abre sesión guardando una cookie firmada. La contraseña nunca se guarda en
 // ningún sitio nuestro — Odoo es quien la valida.
 
-import { callOdoo, signSession, setSessionCookie } from '../lib/auth.js';
+import { callOdoo, signSession, setSessionCookie } from './_lib/auth.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {

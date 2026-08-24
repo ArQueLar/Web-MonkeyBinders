@@ -5,7 +5,7 @@
 // cliente nunca puede pedir los pedidos de otro, porque el partnerId no lo
 // controla el navegador, viene firmado dentro de la cookie.
 
-import { getSessionFromRequest, callOdoo } from '../lib/auth.js';
+import { getSessionFromRequest, callOdoo } from './_lib/auth.js';
 
 export default async function handler(req, res) {
     const session = getSessionFromRequest(req);

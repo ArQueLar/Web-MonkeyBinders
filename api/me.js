@@ -3,7 +3,7 @@
 // cookie ya lleva firmados el nombre/email/partnerId, así que esto es
 // instantáneo y no gasta ninguna llamada a Odoo en cada carga de página.
 
-import { getSessionFromRequest } from '../lib/auth.js';
+import { getSessionFromRequest } from './_lib/auth.js';
 
 export default async function handler(req, res) {
     const session = getSessionFromRequest(req);
