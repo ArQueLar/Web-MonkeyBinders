@@ -56,7 +56,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true });
         } catch (err) {
             // Detalle temporal para depurar — lo quitamos en cuanto sepamos qué falla.
-            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo', detail: err.message });
+            return res.status(500).json({ success: false, error: 'Error al conectar con Odoo' });
         }
     }
 
