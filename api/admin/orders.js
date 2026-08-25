@@ -51,6 +51,7 @@ const CORREOS_INTERNACIONAL_BANDS = [
 // "fixedId" fijo (para carriers como UPS, donde el ID no varía con el peso —
 // Sendcloud sigue calculando la tarifa con el peso real que se envía aparte).
 const SHIPPING_SERVICES = {
+    test_unstamped_letter: { label: '🧪 SOLO PRUEBAS — Unstamped Letter (gratis, sin transportista real)', fixedId: 8, needsServicePoint: false },
     correos_domicilio: { label: 'Correos — Entrega a domicilio (nacional)', bands: CORREOS_DOMICILIO_BANDS, needsServicePoint: false },
     correos_recogida: { label: 'Correos — Recogida en punto (nacional)', bands: CORREOS_RECOGIDA_BANDS, needsServicePoint: true },
     correos_internacional: { label: 'Correos — Internacional', bands: CORREOS_INTERNACIONAL_BANDS, needsServicePoint: false },
