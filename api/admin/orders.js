@@ -113,7 +113,10 @@ export default async function handler(req, res) {
 
         const fullOrders = orders.map(o => {
             const pickings = pickingsByOrderId[o.id] || [];
-            const latestPicking = pickings[0];
+            // Igual que en orders.js: preferimos la transferencia activa si hay varias
+            // (ej. una cancelada y sustituida por otra), y solo mostramos "cancelado"
+            // si de verdad todas las transferencias de ese pedido lo están.
+            const latestPicking = pickings.find(p => p.state !== 'cancel') || pickings[0];
             return {
                 id: o.id,
                 name: o.name,

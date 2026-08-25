@@ -69,7 +69,10 @@ export default async function handler(req, res) {
 
         const ordersWithShipping = orders.map(o => {
             const pickings = pickingsByOrderId[o.id] || [];
-            const latestPicking = pickings[0]; // ya vienen ordenadas de más reciente a más antigua
+            // Si hay varias transferencias para el mismo pedido (ej. una cancelada y
+            // sustituida por otra, típico de entregas parciales), preferimos la última
+            // que NO esté cancelada — solo mostramos "cancelado" si de verdad todas lo están.
+            const latestPicking = pickings.find(p => p.state !== 'cancel') || pickings[0];
             return {
                 ...o,
                 shippingState: latestPicking ? latestPicking.state : null,
