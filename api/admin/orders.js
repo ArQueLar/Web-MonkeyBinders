@@ -111,24 +111,28 @@ export default async function handler(req, res) {
             }
         }
 
-        const fullOrders = orders.map(o => {
-            const pickings = pickingsByOrderId[o.id] || [];
-            // Igual que en orders.js: preferimos la transferencia activa si hay varias
-            // (ej. una cancelada y sustituida por otra), y solo mostramos "cancelado"
-            // si de verdad todas las transferencias de ese pedido lo están.
-            const latestPicking = pickings.find(p => p.state !== 'cancel') || pickings[0];
-            return {
-                id: o.id,
-                name: o.name,
-                customer: Array.isArray(o.partner_id) ? o.partner_id[1] : '',
-                date_order: o.date_order,
-                amount_total: o.amount_total,
-                state: o.state,
-                lines: linesByOrderId[o.id] || [],
-                pickingId: latestPicking ? latestPicking.id : null,
-                shippingState: latestPicking ? latestPicking.state : null
-            };
-        });
+        const fullOrders = orders
+            .map(o => {
+                const pickings = pickingsByOrderId[o.id] || [];
+                // Igual que en orders.js: preferimos la transferencia activa si hay varias
+                // (ej. una cancelada y sustituida por otra), y solo mostramos "cancelado"
+                // si de verdad todas las transferencias de ese pedido lo están.
+                const latestPicking = pickings.find(p => p.state !== 'cancel') || pickings[0];
+                return {
+                    id: o.id,
+                    name: o.name,
+                    customer: Array.isArray(o.partner_id) ? o.partner_id[1] : '',
+                    date_order: o.date_order,
+                    amount_total: o.amount_total,
+                    state: o.state,
+                    lines: linesByOrderId[o.id] || [],
+                    pickingId: latestPicking ? latestPicking.id : null,
+                    shippingState: latestPicking ? latestPicking.state : null
+                };
+            })
+            // Fuera los que tienen el envío cancelado de verdad (todas sus transferencias
+            // canceladas, sin ninguna activa) — no se van a recuperar, no aportan nada aquí.
+            .filter(o => o.shippingState !== 'cancel');
 
         return res.status(200).json({ success: true, orders: fullOrders });
     } catch (err) {
