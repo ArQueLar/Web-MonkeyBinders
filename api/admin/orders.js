@@ -119,7 +119,7 @@ async function getOrderShippingAddress(ODOO_URL, ODOO_DB, uid, ODOO_API_KEY, ord
         ODOO_DB, uid, ODOO_API_KEY,
         'res.partner', 'read',
         [[shippingPartnerId]],
-        { fields: ['name', 'street', 'street2', 'city', 'zip', 'country_id', 'phone', 'mobile', 'email'] }
+        { fields: ['name', 'street', 'street2', 'city', 'zip', 'country_id', 'phone', 'email'] } // "mobile" ya no existe en Odoo 19, se fusionó con "phone"
     ]);
     if (!partnerData.length) return { partner: null, countryCode: null };
 
@@ -282,7 +282,7 @@ export default async function handler(req, res) {
                         city: partner.city,
                         postalCode: partner.zip,
                         countryCode,
-                        telephone: partner.phone || partner.mobile,
+                        telephone: partner.phone,
                         email: partner.email,
                         orderNumber: orderName,
                         weightKg,
