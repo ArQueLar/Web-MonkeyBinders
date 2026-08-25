@@ -2461,3 +2461,12 @@ footer.main-footer {
         margin-top: 14px;
     }
 }
+
+/* ==========================================================================
+   CHECKOUT — checkout.html: formulario + resumen en 2 columnas
+   ========================================================================== */
+@media (max-width: 900px) {
+    .checkout-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

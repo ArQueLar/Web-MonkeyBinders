@@ -13,6 +13,7 @@ import { initProductDetail } from './productDetail.js';
 import { initCustomizerForm } from './customizerForm.js';
 import { initAccountPage } from './accountPage.js';
 import { initAdminPage } from './adminPage.js';
+import { initCheckout } from './checkout.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -24,4 +25,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initCustomizerForm();  // formulario de personalización de tienda.html
     initAccountPage();     // cuenta.html — perfil, contraseña y pedidos
     initAdminPage();       // admin.html — panel de administración (solo personal)
+    initCheckout();        // checkout.html — dirección, envío y pago
 });

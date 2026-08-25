@@ -72,7 +72,32 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
     const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, ODOO_LOGIN, ODOO_API_KEY, {}]);
     if (!uid) throw new Error('No se pudo autenticar con Odoo');
 
-    // Buscamos (o creamos) el cliente por email
+    const address = cartData.shippingAddress || {};
+
+    // Buscamos el país por su código ISO-2 (ej. "ES") para poder guardarlo en el cliente
+    let countryId = null;
+    if (address.country) {
+        const countryData = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+            ODOO_DB, uid, ODOO_API_KEY,
+            'res.country', 'search_read',
+            [[['code', '=', address.country]]],
+            { fields: ['id'], limit: 1 }
+        ]);
+        if (countryData.length) countryId = countryData[0].id;
+    }
+
+    const partnerValues = {
+        name: cartData.customerName || cartData.customerEmail,
+        email: cartData.customerEmail,
+        street: address.street,
+        city: address.city,
+        zip: address.zip,
+        phone: address.phone
+    };
+    if (countryId) partnerValues.country_id = countryId;
+
+    // Buscamos (o creamos) el cliente por email, y le actualizamos la dirección
+    // con la que acaba de usar en este pedido (por si es la primera vez que la da).
     const email = cartData.customerEmail;
     let partnerId;
     const existingPartners = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
@@ -83,11 +108,16 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
     ]);
     if (existingPartners.length > 0) {
         partnerId = existingPartners[0].id;
+        await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+            ODOO_DB, uid, ODOO_API_KEY,
+            'res.partner', 'write',
+            [[partnerId], partnerValues]
+        ]);
     } else {
         partnerId = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
             ODOO_DB, uid, ODOO_API_KEY,
             'res.partner', 'create',
-            [{ name: cartData.customerName || email, email }]
+            [partnerValues]
         ]);
     }
 
@@ -132,6 +162,18 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
         }
     }
 
+    // Línea del envío — como texto libre (sin product_id), con el coste real
+    // que se calculó y cobró al hacer el pago.
+    if (cartData.shippingCost > 0) {
+        const methodLabel = cartData.deliveryMethod === 'pickup' ? 'recogida en punto' : 'a domicilio';
+        const pointInfo = cartData.deliveryMethod === 'pickup' && cartData.servicePointId ? ` — punto nº ${cartData.servicePointId}` : '';
+        orderLines.push([0, 0, {
+            name: `Gastos de envío (Correos, ${methodLabel}${pointInfo})`,
+            product_uom_qty: 1,
+            price_unit: cartData.shippingCost
+        }]);
+    }
+
     const newOrderId = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
         ODOO_DB, uid, ODOO_API_KEY,
         'sale.order', 'create',
@@ -149,5 +191,5 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
         [[newOrderId]]
     ]);
 
-    console.log(`✓ Pedido creado en Odoo (id ${newOrderId}) para el pago ${orderReference}, importe ${amountTotal}€`);
+    console.log(`✓ Pedido creado en Odoo (id ${newOrderId}) para el pago ${orderReference}, importe ${amountTotal}€ (envío: ${cartData.shippingCost || 0}€, ${cartData.deliveryMethod === 'pickup' ? 'recogida en punto' : 'a domicilio'})`);
 }

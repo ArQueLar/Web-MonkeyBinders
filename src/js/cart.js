@@ -92,7 +92,13 @@ export function initCart() {
             if (e.target === cartDrawerOverlay) toggleCartDrawer(false);
         });
     }
-    if (checkoutBtn) checkoutBtn.addEventListener('click', handleCheckout);
+    if (checkoutBtn) checkoutBtn.addEventListener('click', () => {
+        if (cart.length === 0) {
+            showToast('⚠ Tu carrito está vacío');
+            return;
+        }
+        window.location.href = '/checkout.html';
+    });
 
     // Usado desde los botones +/- inline del carrito (onclick="updateQty(...)")
     window.updateQty = function (productId, delta) {
@@ -106,122 +112,4 @@ export function initCart() {
     };
 
     updateCartUI();
-}
-
-// --- CHECKOUT (pago con Redsys) ---
-async function handleCheckout() {
-    if (cart.length === 0) {
-        showToast('⚠ Tu carrito está vacío');
-        return;
-    }
-
-    const checkoutBtn = document.getElementById('checkout-btn');
-    checkoutBtn.disabled = true;
-    checkoutBtn.textContent = 'PREPARANDO PAGO...';
-
-    try {
-        // Si el cliente ya tiene sesión iniciada, usamos su email/nombre directamente.
-        // Si no, se los pedimos con un formulario mínimo antes de continuar.
-        let customerEmail, customerName;
-        const sessionRes = await fetch('/api/session');
-        const session = await sessionRes.json();
-
-        if (session.loggedIn) {
-            customerEmail = session.user.email;
-            customerName = session.user.name;
-        } else {
-            const guestInfo = await promptGuestInfo();
-            if (!guestInfo) {
-                checkoutBtn.disabled = false;
-                checkoutBtn.textContent = 'FINALIZAR COMPRA';
-                return; // el cliente canceló
-            }
-            customerEmail = guestInfo.email;
-            customerName = guestInfo.name;
-        }
-
-        const amount = cart.reduce((sum, i) => sum + (i.product.price * i.quantity), 0);
-        const items = cart.map(i => ({
-            id: i.product.id,
-            name: i.product.name,
-            price: i.product.price,
-            quantity: i.quantity
-        }));
-
-        const r = await fetch('/api/create-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount, items, customerEmail, customerName })
-        });
-        const result = await r.json();
-
-        if (!result.success) {
-            showToast(`⚠ ${result.error || 'No se pudo iniciar el pago'}`);
-            checkoutBtn.disabled = false;
-            checkoutBtn.textContent = 'FINALIZAR COMPRA';
-            return;
-        }
-
-        // Construimos un formulario invisible y lo autoenviamos — así es como
-        // funciona la integración "por Redirección" de Redsys: el navegador
-        // del cliente va físicamente a su página de pago.
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = result.redsysUrl;
-        Object.entries(result.formFields).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
-        document.body.appendChild(form);
-        form.submit();
-    } catch (err) {
-        showToast('⚠ Error de conexión al preparar el pago');
-        checkoutBtn.disabled = false;
-        checkoutBtn.textContent = 'FINALIZAR COMPRA';
-    }
-}
-
-// Formulario mínimo de nombre + email para quien compra sin haber iniciado sesión.
-function promptGuestInfo() {
-    return new Promise((resolve) => {
-        const modalOverlay = document.getElementById('modal-overlay');
-        const modalBody = document.getElementById('modal-body');
-        if (!modalOverlay || !modalBody) {
-            resolve(null);
-            return;
-        }
-
-        modalBody.innerHTML = `
-            <div style="text-align:center; padding: 10px;">
-                <span class="section-tag">ANTES DE PAGAR</span>
-                <h2 class="section-title" style="font-size: 20px; margin-bottom: 20px;">TUS DATOS DE CONTACTO</h2>
-                <form id="guest-checkout-form" style="display:flex; flex-direction:column; gap:12px; max-width:320px; margin:0 auto;">
-                    <input type="text" name="name" placeholder="Nombre completo" class="form-input" required>
-                    <input type="email" name="email" placeholder="Correo electrónico" class="form-input" required>
-                    <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px;">CONTINUAR AL PAGO</button>
-                </form>
-            </div>
-        `;
-        modalOverlay.classList.add('active');
-
-        const form = document.getElementById('guest-checkout-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            modalOverlay.classList.remove('active');
-            resolve({ name: formData.get('name'), email: formData.get('email') });
-        });
-
-        // Si cierra el modal sin rellenar, cancelamos el checkout
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const handleClose = () => {
-            modalOverlay.classList.remove('active');
-            resolve(null);
-            closeModalBtn?.removeEventListener('click', handleClose);
-        };
-        closeModalBtn?.addEventListener('click', handleClose, { once: true });
-    });
 }

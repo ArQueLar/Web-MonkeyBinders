@@ -15,7 +15,8 @@ export default defineConfig({
         cuenta: resolve(__dirname, 'cuenta.html'),
         admin: resolve(__dirname, 'admin.html'),
         pagoExito: resolve(__dirname, 'pago-exito.html'),
-        pagoError: resolve(__dirname, 'pago-error.html')
+        pagoError: resolve(__dirname, 'pago-error.html'),
+        checkout: resolve(__dirname, 'checkout.html')
       }
     }
   },
