@@ -185,18 +185,35 @@ function renderProductionTab(tab, orders) {
             <ul style="margin:10px 0 0 0; padding-left:18px; font-size:13px; color:var(--text-secondary);">
                 ${o.lines.map(l => `<li>${l.qty} × ${l.name}</li>`).join('')}
             </ul>
-            ${o.pickingId ? `
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                ${o.shippingState !== 'assigned' && o.shippingState !== 'done' ? `<button class="btn-secondary admin-ship-btn" data-picking="${o.pickingId}" data-action="ready" style="padding:6px 14px; font-size:11px;">MARCAR LISTO</button>` : ''}
-                ${o.shippingState !== 'done' ? `<button class="btn-primary admin-ship-btn" data-picking="${o.pickingId}" data-action="deliver" style="padding:6px 14px; font-size:11px;">MARCAR ENTREGADO</button>` : ''}
+
+            ${o.trackingNumber ? `
+            <div style="margin-top:10px; font-size:12px; color:var(--text-secondary);">
+                📦 Seguimiento Sendcloud: <strong>${o.trackingNumber}</strong>
             </div>
-            ` : `<div style="font-size:11px; color:var(--text-muted); margin-top:10px;">Este pedido no tiene todavía una transferencia de envío en Odoo.</div>`}
+            ` : ''}
+
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                ${o.pickingId ? `
+                    ${o.shippingState !== 'assigned' && o.shippingState !== 'done' ? `<button class="btn-secondary admin-ship-btn" data-picking="${o.pickingId}" data-action="ready" style="padding:6px 14px; font-size:11px;">MARCAR LISTO</button>` : ''}
+                    ${o.shippingState !== 'done' ? `<button class="btn-primary admin-ship-btn" data-picking="${o.pickingId}" data-action="deliver" style="padding:6px 14px; font-size:11px;">MARCAR ENTREGADO</button>` : ''}
+                ` : `<div style="font-size:11px; color:var(--text-muted);">Este pedido no tiene todavía una transferencia de envío en Odoo.</div>`}
+
+                ${!o.trackingNumber ? `<button class="btn-secondary admin-label-btn" data-order="${o.id}" style="padding:6px 14px; font-size:11px;">📦 CREAR ETIQUETA (SENDCLOUD)</button>` : ''}
+                ${o.trackingNumber ? `<button class="btn-secondary admin-track-btn" data-tracking="${o.trackingNumber}" style="padding:6px 14px; font-size:11px;">🔎 VER ESTADO REAL</button>` : ''}
+            </div>
+            <div class="admin-track-result" data-order="${o.id}" style="margin-top:8px; font-size:12px; display:none;"></div>
         </div>
         `;
     }).join('');
 
     tab.querySelectorAll('.admin-ship-btn').forEach(btn => {
         btn.addEventListener('click', () => updateShipping(btn.dataset.picking, btn.dataset.action));
+    });
+    tab.querySelectorAll('.admin-label-btn').forEach(btn => {
+        btn.addEventListener('click', () => createLabel(btn));
+    });
+    tab.querySelectorAll('.admin-track-btn').forEach(btn => {
+        btn.addEventListener('click', () => checkTracking(btn));
     });
 }
 
@@ -253,5 +270,73 @@ async function updateShipping(pickingId, action) {
         }
     } catch (err) {
         showToast('⚠ Error de conexión');
+    }
+}
+
+async function createLabel(btn) {
+    const orderId = Number(btn.dataset.order);
+    btn.disabled = true;
+    btn.textContent = 'CREANDO...';
+
+    try {
+        const r = await fetch('/api/admin/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'create-label', orderId })
+        });
+        const result = await r.json();
+
+        if (result.success) {
+            showToast(`✓ Etiqueta creada — seguimiento ${result.trackingNumber}`);
+            if (result.labelUrl) {
+                // Abrimos la etiqueta en una pestaña nueva, pasando por nuestro propio proxy
+                // (la URL de Sendcloud necesita autenticación, el navegador no puede acceder sola)
+                window.open(`/api/admin/orders?downloadLabel=${encodeURIComponent(result.labelUrl)}`, '_blank');
+            }
+            loadOrders();
+        } else {
+            showToast(`⚠ ${result.error || 'No se pudo crear la etiqueta'}`);
+            btn.disabled = false;
+            btn.textContent = '📦 CREAR ETIQUETA (SENDCLOUD)';
+        }
+    } catch (err) {
+        showToast('⚠ Error de conexión con Sendcloud');
+        btn.disabled = false;
+        btn.textContent = '📦 CREAR ETIQUETA (SENDCLOUD)';
+    }
+}
+
+async function checkTracking(btn) {
+    const trackingNumber = btn.dataset.tracking;
+    const resultBox = btn.closest('div').parentElement.querySelector('.admin-track-result');
+
+    btn.disabled = true;
+    btn.textContent = 'COMPROBANDO...';
+
+    try {
+        const r = await fetch('/api/admin/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'check-tracking', trackingNumber })
+        });
+        const result = await r.json();
+
+        if (resultBox) {
+            resultBox.style.display = 'block';
+            if (result.success) {
+                resultBox.innerHTML = `Estado real del transportista: <strong>${result.status}</strong>` +
+                    (result.trackingUrl ? ` — <a href="${result.trackingUrl}" target="_blank" style="color:var(--accent-jungle);">ver seguimiento completo</a>` : '');
+            } else {
+                resultBox.textContent = `⚠ ${result.error || 'No se pudo consultar Sendcloud'}`;
+            }
+        }
+    } catch (err) {
+        if (resultBox) {
+            resultBox.style.display = 'block';
+            resultBox.textContent = '⚠ Error de conexión con Sendcloud';
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔎 VER ESTADO REAL';
     }
 }
