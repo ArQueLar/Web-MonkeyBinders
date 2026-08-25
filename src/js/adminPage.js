@@ -198,9 +198,10 @@ function renderProductionTab(tab, orders) {
                     ${o.shippingState !== 'done' ? `<button class="btn-primary admin-ship-btn" data-picking="${o.pickingId}" data-action="deliver" style="padding:6px 14px; font-size:11px;">MARCAR ENTREGADO</button>` : ''}
                 ` : `<div style="font-size:11px; color:var(--text-muted);">Este pedido no tiene todavía una transferencia de envío en Odoo.</div>`}
 
-                ${!o.trackingNumber ? `<button class="btn-secondary admin-label-btn" data-order="${o.id}" style="padding:6px 14px; font-size:11px;">📦 CREAR ETIQUETA (SENDCLOUD)</button>` : ''}
+                ${!o.trackingNumber ? `<button class="btn-secondary admin-open-label-btn" data-order="${o.id}" data-suggested-weight="${o.suggestedWeightKg}" style="padding:6px 14px; font-size:11px;">📦 CREAR ETIQUETA DE ENVÍO</button>` : ''}
                 ${o.trackingNumber ? `<button class="btn-secondary admin-track-btn" data-tracking="${o.trackingNumber}" style="padding:6px 14px; font-size:11px;">🔎 VER ESTADO REAL</button>` : ''}
             </div>
+            <div class="admin-label-form" data-order="${o.id}" style="margin-top:10px; display:none;"></div>
             <div class="admin-track-result" data-order="${o.id}" style="margin-top:8px; font-size:12px; display:none;"></div>
         </div>
         `;
@@ -209,8 +210,8 @@ function renderProductionTab(tab, orders) {
     tab.querySelectorAll('.admin-ship-btn').forEach(btn => {
         btn.addEventListener('click', () => updateShipping(btn.dataset.picking, btn.dataset.action));
     });
-    tab.querySelectorAll('.admin-label-btn').forEach(btn => {
-        btn.addEventListener('click', () => createLabel(btn));
+    tab.querySelectorAll('.admin-open-label-btn').forEach(btn => {
+        btn.addEventListener('click', () => openLabelForm(btn));
     });
     tab.querySelectorAll('.admin-track-btn').forEach(btn => {
         btn.addEventListener('click', () => checkTracking(btn));
@@ -273,8 +274,102 @@ async function updateShipping(pickingId, action) {
     }
 }
 
-async function createLabel(btn) {
+async function openLabelForm(btn) {
     const orderId = Number(btn.dataset.order);
+    const suggestedWeight = Number(btn.dataset.suggestedWeight) || 1;
+    const form = document.querySelector(`.admin-label-form[data-order="${orderId}"]`);
+    if (!form) return;
+
+    form.style.display = 'block';
+    form.innerHTML = `<p style="font-size:12px; color:var(--text-muted);">Cargando opciones de envío...</p>`;
+
+    try {
+        const r = await fetch('/api/admin/orders?shippingServices=1');
+        const result = await r.json();
+        if (!result.success) {
+            form.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">⚠ No se pudieron cargar los servicios de envío</p>`;
+            return;
+        }
+
+        form.innerHTML = `
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+                <div>
+                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">SERVICIO DE ENVÍO</label>
+                    <select class="form-input label-service-select" style="min-width:260px;">
+                        ${result.services.map(s => `<option value="${s.key}">${s.label}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">PESO (KG)</label>
+                    <input type="number" class="form-input label-weight-input" value="${suggestedWeight}" min="0.05" max="30" step="0.05" style="width:90px;">
+                </div>
+                <button class="btn-primary label-continue-btn" style="padding:8px 16px; font-size:11px;">CONTINUAR</button>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Peso calculado según el tamaño de cada línea del pedido — puedes ajustarlo si hace falta.</div>
+            <div class="label-pickup-picker" style="margin-top:10px;"></div>
+        `;
+
+        form.querySelector('.label-continue-btn').addEventListener('click', () => handleLabelContinue(form, orderId, result.services));
+    } catch (err) {
+        form.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">⚠ Error de conexión con Sendcloud</p>`;
+    }
+}
+
+async function handleLabelContinue(form, orderId, services) {
+    const serviceKey = form.querySelector('.label-service-select').value;
+    const weightKg = Number(form.querySelector('.label-weight-input').value) || 1;
+    const service = services.find(s => s.key === serviceKey);
+    const pickerBox = form.querySelector('.label-pickup-picker');
+    const continueBtn = form.querySelector('.label-continue-btn');
+
+    // Si este servicio no necesita punto de recogida, creamos la etiqueta directamente
+    if (!service.needsServicePoint) {
+        createLabel({ orderId, serviceKey, weightKg }, continueBtn, form);
+        return;
+    }
+
+    // Si necesita punto de recogida, primero buscamos los cercanos a la dirección del cliente
+    continueBtn.disabled = true;
+    pickerBox.innerHTML = `<p style="font-size:12px; color:var(--text-muted);">Buscando puntos de recogida cercanos...</p>`;
+
+    try {
+        const r = await fetch('/api/admin/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'search-service-points', orderId })
+        });
+        const result = await r.json();
+
+        if (!result.success) {
+            pickerBox.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">⚠ ${result.error || 'No se pudieron buscar puntos de recogida'}</p>`;
+            continueBtn.disabled = false;
+            return;
+        }
+        if (result.points.length === 0) {
+            pickerBox.innerHTML = `<p style="font-size:12px; color:var(--text-muted);">No se encontró ningún punto de recogida cerca de esa dirección.</p>`;
+            continueBtn.disabled = false;
+            return;
+        }
+
+        pickerBox.innerHTML = `
+            <select class="form-input pickup-select" style="margin-bottom:8px; min-width:280px;">
+                ${result.points.map(p => `<option value="${p.id}">${p.name} — ${p.street} ${p.houseNumber || ''}, ${p.city}</option>`).join('')}
+            </select>
+            <button class="btn-primary pickup-confirm-btn" style="padding:6px 14px; font-size:11px;">CONFIRMAR Y CREAR ETIQUETA</button>
+        `;
+
+        pickerBox.querySelector('.pickup-confirm-btn').addEventListener('click', (e) => {
+            const servicePointId = Number(pickerBox.querySelector('.pickup-select').value);
+            createLabel({ orderId, serviceKey, weightKg, servicePointId }, e.target, form);
+        });
+    } catch (err) {
+        pickerBox.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">⚠ Error de conexión con Sendcloud</p>`;
+        continueBtn.disabled = false;
+    }
+}
+
+async function createLabel({ orderId, serviceKey, weightKg, servicePointId }, btn, form) {
+    const originalText = btn.textContent;
     btn.disabled = true;
     btn.textContent = 'CREANDO...';
 
@@ -282,7 +377,7 @@ async function createLabel(btn) {
         const r = await fetch('/api/admin/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'create-label', orderId })
+            body: JSON.stringify({ action: 'create-label', orderId, serviceKey, weightKg, servicePointId })
         });
         const result = await r.json();
 
@@ -297,12 +392,12 @@ async function createLabel(btn) {
         } else {
             showToast(`⚠ ${result.error || 'No se pudo crear la etiqueta'}`);
             btn.disabled = false;
-            btn.textContent = '📦 CREAR ETIQUETA (SENDCLOUD)';
+            btn.textContent = originalText;
         }
     } catch (err) {
         showToast('⚠ Error de conexión con Sendcloud');
         btn.disabled = false;
-        btn.textContent = '📦 CREAR ETIQUETA (SENDCLOUD)';
+        btn.textContent = originalText;
     }
 }
 

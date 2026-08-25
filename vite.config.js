@@ -13,7 +13,9 @@ export default defineConfig({
         tienda: resolve(__dirname, 'tienda/tienda.html'),
         producto: resolve(__dirname, 'tienda/producto.html'),
         cuenta: resolve(__dirname, 'cuenta.html'),
-        admin: resolve(__dirname, 'admin.html')
+        admin: resolve(__dirname, 'admin.html'),
+        pagoExito: resolve(__dirname, 'pago-exito.html'),
+        pagoError: resolve(__dirname, 'pago-error.html')
       }
     }
   },

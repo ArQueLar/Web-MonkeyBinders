@@ -29,30 +29,55 @@ async function callSendcloud(path, options = {}) {
     return data;
 }
 
-// Crea el envío y la etiqueta EN UN SOLO PASO (request_label: true), usando el
-// método de envío que hayáis configurado por defecto en Sendcloud.
-export async function createSendcloudParcel({ name, address, address2, city, postalCode, countryCode, telephone, email, orderNumber, weightKg }) {
-    const shippingMethodId = Number(process.env.SENDCLOUD_SHIPPING_METHOD_ID);
-
-    const body = {
-        parcel: {
-            name,
-            address,
-            address_2: address2 || '',
-            city,
-            postal_code: postalCode,
-            country: countryCode,
-            telephone: telephone || '',
-            email: email || '',
-            order_number: orderNumber,
-            weight: weightKg.toFixed(3),
-            request_label: true,
-            shipping_method: shippingMethodId
-        }
+// Crea el envío y la etiqueta EN UN SOLO PASO (request_label: true).
+// shippingMethodId decide con qué transportista/servicio se manda (a domicilio
+// o punto de recogida — el que se elija en admin/orders.js).
+// toServicePoint es obligatorio si es una entrega en punto de recogida.
+export async function createSendcloudParcel({ name, address, address2, city, postalCode, countryCode, telephone, email, orderNumber, weightKg, shippingMethodId, toServicePoint }) {
+    const parcelData = {
+        name,
+        address,
+        address_2: address2 || '',
+        city,
+        postal_code: postalCode,
+        country: countryCode,
+        telephone: telephone || '',
+        email: email || '',
+        order_number: orderNumber,
+        weight: weightKg.toFixed(3),
+        request_label: true,
+        shipping_method: shippingMethodId
     };
 
-    const data = await callSendcloud('/parcels', { method: 'POST', body: JSON.stringify(body) });
+    if (toServicePoint) {
+        parcelData.to_service_point = toServicePoint;
+    }
+
+    const data = await callSendcloud('/parcels', { method: 'POST', body: JSON.stringify({ parcel: parcelData }) });
     return data.parcel;
+}
+
+// Busca puntos de recogida cercanos a una dirección (código postal). Ojo: esta
+// API vive en un dominio DISTINTO al resto de Sendcloud (servicepoints.sendcloud.sc,
+// no panel.sendcloud.sc) — por eso no usa el helper callSendcloud() de arriba.
+export async function searchSendcloudServicePoints(countryCode, postalCode) {
+    const params = new URLSearchParams({ country: countryCode, address: postalCode, radius: '5000' });
+    const response = await fetch(`https://servicepoints.sendcloud.sc/api/v2/service-points?${params.toString()}`, {
+        headers: { Authorization: getAuthHeader() }
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+        const message = data?.error?.message || `Sendcloud devolvió un error (${response.status})`;
+        throw new Error(message);
+    }
+    return (Array.isArray(data) ? data : []).map(sp => ({
+        id: sp.id,
+        name: sp.name,
+        street: sp.street,
+        houseNumber: sp.house_number,
+        postalCode: sp.postal_code,
+        city: sp.city
+    }));
 }
 
 // Consulta el estado REAL del envío (lo que dice el transportista), buscando
