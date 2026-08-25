@@ -99,6 +99,46 @@ export async function listSendcloudShippingMethods() {
     }));
 }
 
+// Consulta el precio REAL de envío para un destino concreto, usando la API
+// v3 de "Shipping options & quotes" — a diferencia de la API v2 de precios
+// (usada en listSendcloudShippingMethods), esta SÍ soporta transportistas con
+// tarifa por zona postal como Correos en España.
+//
+// AVISO: no he podido confirmar el 100% el nombre exacto del campo del precio
+// en la respuesta contra la documentación pública — devolvemos la respuesta
+// completa tal cual para poder verla en la primera prueba real y ajustar el
+// "parseo" del precio en un segundo si hiciera falta.
+export async function getSendcloudShippingQuote({ toCountryCode, toPostalCode, toCity, fromCountryCode, fromPostalCode, carrierCode }) {
+    const body = {
+        from_address: {
+            country_code: fromCountryCode || 'ES',
+            postal_code: fromPostalCode
+        },
+        to_address: {
+            country_code: toCountryCode || 'ES',
+            postal_code: toPostalCode,
+            city: toCity
+        },
+        calculate_quotes: true
+    };
+    if (carrierCode) body.carrier_code = carrierCode;
+
+    const response = await fetch('https://panel.sendcloud.sc/api/v3/shipping-options', {
+        method: 'POST',
+        headers: {
+            Authorization: getAuthHeader(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+        const message = data?.message || data?.error?.message || `Sendcloud devolvió un error (${response.status})`;
+        throw new Error(message);
+    }
+    return data;
+}
+
 // Las URLs de las etiquetas de Sendcloud requieren autenticación para
 // descargarse — el navegador del admin no puede acceder directamente, así
 // que lo hacemos nosotros por detrás y le pasamos el PDF ya descargado.

@@ -16,7 +16,7 @@
 
 import { buildMerchantParameters, signParameters, getRedsysUrl } from './_lib/redsys.js';
 import { calculateCartWeight, calculateShippingCost } from './_lib/shipping-pricing.js';
-import { searchSendcloudServicePoints } from './_lib/sendcloud.js';
+import { searchSendcloudServicePoints, getSendcloudShippingQuote } from './_lib/sendcloud.js';
 
 function generateOrderReference() {
     const numericPrefix = String(Date.now()).slice(-4);
@@ -34,6 +34,28 @@ export default async function handler(req, res) {
         try {
             const points = await searchSendcloudServicePoints(country || 'ES', postalCode);
             return res.status(200).json({ success: true, points });
+        } catch (err) {
+            return res.status(502).json({ success: false, error: `Sendcloud: ${err.message}` });
+        }
+    }
+
+    // --- GET con ?testShippingQuote=1 : consulta puntual para ver la respuesta
+    // real de Sendcloud y confirmar el nombre del campo del precio. Quítalo (o
+    // déjalo, no molesta) una vez esté confirmado y usado en calculateShippingCost. ---
+    if (req.method === 'GET' && req.query.testShippingQuote) {
+        const { postalCode, country } = req.query;
+        if (!postalCode) {
+            return res.status(400).json({ success: false, error: 'Falta el código postal (?postalCode=28001)' });
+        }
+        try {
+            const quote = await getSendcloudShippingQuote({
+                toCountryCode: country || 'ES',
+                toPostalCode: postalCode,
+                fromCountryCode: 'ES',
+                fromPostalCode: process.env.SENDCLOUD_FROM_POSTAL_CODE,
+                carrierCode: 'correos'
+            });
+            return res.status(200).json({ success: true, rawResponse: quote });
         } catch (err) {
             return res.status(502).json({ success: false, error: `Sendcloud: ${err.message}` });
         }
