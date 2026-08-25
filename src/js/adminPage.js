@@ -229,6 +229,7 @@ function renderOrdersTab(tab, orders) {
         <table style="width:100%; border-collapse:collapse; font-size:13px; min-width:600px;">
             <thead>
                 <tr style="text-align:left; border-bottom:2px solid var(--border-color);">
+                    <th style="padding:10px 8px;"></th>
                     <th style="padding:10px 8px;">Pedido</th>
                     <th style="padding:10px 8px;">Cliente</th>
                     <th style="padding:10px 8px;">Fecha</th>
@@ -240,12 +241,21 @@ function renderOrdersTab(tab, orders) {
                 ${orders.map(o => {
                     const shippingInfo = o.shippingState ? SHIPPING_STATE_INFO[o.shippingState] : { label: '—', color: 'var(--text-muted)' };
                     return `
-                    <tr style="border-bottom:1px solid var(--border-color);">
+                    <tr class="order-row-toggle" data-order="${o.id}" style="border-bottom:1px solid var(--border-color); cursor:pointer;">
+                        <td style="padding:10px 8px; color:var(--text-muted); width:20px;" class="order-row-arrow">▸</td>
                         <td style="padding:10px 8px; font-weight:700;">${o.name}</td>
                         <td style="padding:10px 8px;">${o.customer}</td>
                         <td style="padding:10px 8px; color:var(--text-muted);">${new Date(o.date_order).toLocaleDateString('es-ES')}</td>
                         <td style="padding:10px 8px; color:${shippingInfo.color}; font-weight:700;">${shippingInfo.label}</td>
                         <td style="padding:10px 8px; text-align:right; font-weight:800; color:var(--accent-jungle);">${o.amount_total.toFixed(2)} €</td>
+                    </tr>
+                    <tr class="order-row-detail" data-order="${o.id}" style="display:none; background:var(--bg-surface);">
+                        <td></td>
+                        <td colspan="5" style="padding:10px 8px 16px 8px;">
+                            <ul style="margin:0; padding-left:18px; color:var(--text-secondary);">
+                                ${o.lines.map(l => `<li>${l.qty} × ${l.name}</li>`).join('')}
+                            </ul>
+                        </td>
                     </tr>
                     `;
                 }).join('')}
@@ -253,6 +263,17 @@ function renderOrdersTab(tab, orders) {
         </table>
         </div>
     `;
+
+    tab.querySelectorAll('.order-row-toggle').forEach(row => {
+        row.addEventListener('click', () => {
+            const orderId = row.dataset.order;
+            const detailRow = tab.querySelector(`.order-row-detail[data-order="${orderId}"]`);
+            const arrow = row.querySelector('.order-row-arrow');
+            const isOpen = detailRow.style.display !== 'none';
+            detailRow.style.display = isOpen ? 'none' : 'table-row';
+            arrow.textContent = isOpen ? '▸' : '▾';
+        });
+    });
 }
 
 async function updateShipping(pickingId, action) {
