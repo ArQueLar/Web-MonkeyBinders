@@ -96,6 +96,17 @@ export function initCustomizerForm() {
             return;
         }
 
+        const privacyCheckbox = document.getElementById('customizer-privacy-checkbox');
+        const privacyErrorText = document.getElementById('privacy-error-text');
+        if (privacyCheckbox && !privacyCheckbox.checked) {
+            if (privacyErrorText) {
+                privacyErrorText.textContent = 'Tienes que aceptar la Política de Privacidad para enviar la solicitud.';
+                privacyErrorText.style.display = 'block';
+            }
+            privacyCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         submitBtn.disabled = true;
         statusEl.textContent = '';
         statusEl.className = '';
@@ -129,6 +140,7 @@ export function initCustomizerForm() {
                 if (fileUploadLabel) fileUploadLabel.textContent = DEFAULT_UPLOAD_LABEL;
                 colorSwatchBtns.forEach(b => b.classList.remove('active'));
                 if (colorBinderInput) colorBinderInput.value = '';
+                if (privacyCheckbox) privacyCheckbox.checked = false;
             } else {
                 statusEl.textContent = 'Hubo un problema al enviar. Inténtalo de nuevo.';
                 statusEl.className = 'form-status-error';

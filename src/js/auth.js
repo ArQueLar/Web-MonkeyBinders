@@ -77,6 +77,10 @@ export function renderAuthForm(container, mode, onSuccess) {
                     <div id="password-strength-label" style="font-size:11px; margin-top:4px; min-height:14px;"></div>
                     <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</div>
                 </div>
+                <label style="display:flex; align-items:flex-start; gap:8px; font-size:11.5px; color:var(--text-muted); text-align:left; cursor:pointer; margin-top:4px;">
+                    <input type="checkbox" name="acceptPrivacy" required style="margin-top:2px; flex-shrink:0;">
+                    <span>He leído y acepto la <a href="/politica-privacidad.html" target="_blank" style="color:var(--accent-jungle);">Política de Privacidad</a> y los <a href="/terminos-condiciones.html" target="_blank" style="color:var(--accent-jungle);">Términos y Condiciones</a>.</span>
+                </label>
                 ` : ''}
                 <button type="submit" class="btn-primary" id="auth-submit-btn" style="width:100%; justify-content:center; padding:12px;">
                     ${isLogin ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}

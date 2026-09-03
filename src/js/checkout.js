@@ -79,6 +79,11 @@ function renderCheckout(container, cart, session) {
                         </label>
                     </div>
                     <div id="checkout-pickup-picker" style="display:none; margin-top:6px;"></div>
+
+                    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-muted); cursor:pointer; margin-top:14px;">
+                        <input type="checkbox" name="acceptTerms" required style="margin-top:2px; flex-shrink:0;">
+                        <span>He leído y acepto los <a href="/terminos-condiciones.html" target="_blank" style="color:var(--accent-jungle);">Términos y Condiciones</a> y la <a href="/politica-privacidad.html" target="_blank" style="color:var(--accent-jungle);">Política de Privacidad</a>.</span>
+                    </label>
                 </form>
             </div>
 
@@ -116,7 +121,6 @@ function renderCheckout(container, cart, session) {
             </div>
         </div>
     `;
-
     let selectedServicePointId = null;
 
     function updateShippingEstimate() {
