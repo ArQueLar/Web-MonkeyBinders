@@ -1,172 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle de Producto | Monkey Binders</title>
+    <title>Términos y Condiciones | Monkey Binders</title>
     <link rel="icon" href="/assets/Cosas Web/Logo/Monkey.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/src/css/styles.css">
-    <style>
-        .product-detail-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            align-items: start;
-        }
-        .product-gallery {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            text-align: center;
-        }
-        .product-main-img {
-            max-height: 400px;
-            margin: 0 auto;
-            object-fit: contain;
-            width: 100%;
-        }
-        .gallery-thumbs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .thumb-img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            padding: 4px;
-            background: var(--bg-card-img);
-        }
-        .thumb-img.active {
-            border-color: var(--accent-jungle);
-        }
-        .selector-group {
-            margin: 20px 0;
-        }
-        .size-options {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .size-btn {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-        .size-btn.active {
-            border-color: var(--accent-jungle);
-            background: var(--bg-surface);
-            color: var(--accent-jungle);
-        }
-        .qty-picker {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .qty-btn {
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            padding: 0;
-            line-height: 1;
-        }
-        .qty-btn:hover {
-            background: var(--bg-surface);
-            border-color: var(--accent-jungle);
-            color: var(--accent-jungle);
-        }
-        .qty-picker input {
-            width: 60px;
-            height: 40px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            background: var(--bg-input);
-            outline: none;
-            line-height: 40px;
-            margin: 0;
-            padding: 0;
-            -moz-appearance: textfield;
-        }
-        .qty-picker input::-webkit-outer-spin-button,
-        .qty-picker input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        /* Adaptación Responsive para Móviles */
-        @media (max-width: 992px) {
-            .product-detail-container {
-                grid-template-columns: 1fr !important;
-                gap: 24px;
-                margin: 20px auto;
-                padding: 0 16px;
-            }
-            .product-main-img {
-                max-height: 320px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .product-detail-container {
-                gap: 20px;
-                margin: 16px auto;
-                padding: 0 12px;
-            }
-            .product-main-img {
-                max-height: 250px;
-            }
-            .product-info-panel h1 {
-                font-size: 24px !important;
-            }
-            .size-options {
-                flex-direction: column;
-                gap: 8px;
-            }
-            .size-btn {
-                padding: 10px;
-                font-size: 12px;
-            }
-        }
-    </style>
 </head>
+
 <body>
 
     <div class="announcement-bar">
         <div class="announcement-content">
-            <div class="announcement-item"><span>⚡</span><span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span></div>
+            <div class="announcement-item">
+                <span>🚚</span>
+                <span>Envío gratis en pedidos superiores a 200€</span>
+            </div>
+            <div class="announcement-item">
+                <span>⚡</span>
+                <span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span>
+            </div>
         </div>
     </div>
 
@@ -179,7 +38,7 @@
             <nav class="nav-container">
                 <ul class="nav-menu">
                     <li class="nav-item"><a href="/index.html" class="nav-link">Inicio</a></li>
-                    <li class="nav-item"><a href="/tienda/tienda.html" class="nav-link active">Tienda</a></li>
+                    <li class="nav-item"><a href="/tienda/tienda.html" class="nav-link">Tienda</a></li>
                     <li class="nav-item"><a href="/tienda/tienda.html#customizer" class="nav-link">Personalizar</a></li>
                     <li class="nav-item"><a href="/index.html#about" class="nav-link">Sobre Nosotros</a></li>
                     <li class="nav-item"><a href="/index.html#reviews" class="nav-link">Comunidad</a></li>
@@ -208,11 +67,40 @@
         </div>
     </header>
 
-    <main class="product-detail-container" id="product-detail-view">
-        <!-- Contenido generado dinámicamente desde app.js -->
+    <!-- TÉRMINOS Y CONDICIONES DE VENTA -->
+    <main style="max-width: 800px; margin: 60px auto; padding: 0 20px 60px 20px; line-height:1.7; font-size:14.5px; color:var(--text-secondary);" id="legal-page-content">
+        <h1 class="section-title" style="font-size:28px; margin-bottom:8px;">TÉRMINOS Y CONDICIONES DE VENTA</h1>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:30px;">Última actualización: 25 de agosto de 2026</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">1. Identificación del vendedor</h2>
+        <p>La venta de productos a través de este Sitio Web es realizada por Roberto Barreiro Marcos, con NIF 47229265F y domicilio en C/ Colombia, 17, 10-3, 28823 Coslada, Madrid, operando bajo el nombre comercial <strong>Monkey Binders</strong>. Más datos identificativos en el <a href="/aviso-legal.html" style="color:var(--accent-jungle);">Aviso Legal</a>.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">2. Objeto</h2>
+        <p>Estas condiciones regulan la compra de binders personalizados grabados a láser y demás productos ofrecidos en el Sitio Web. Al realizar un pedido, el cliente declara ser mayor de edad y aceptar íntegramente estas condiciones.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">3. Proceso de compra</h2>
+        <p>El cliente selecciona los productos, los añade al carrito, y completa el proceso de pago indicando sus datos de envío. Una vez confirmado el pago, se envía un correo electrónico de confirmación del pedido. El contrato de compraventa se entiende perfeccionado en el momento en que el pago es autorizado.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">4. Precios e impuestos</h2>
+        <p>Todos los precios mostrados en el Sitio Web incluyen el IVA vigente aplicable en España. Los gastos de envío se calculan y muestran de forma separada antes de finalizar la compra, en función del peso del pedido y el método de envío elegido. Monkey Binders se reserva el derecho de modificar los precios en cualquier momento, sin que ello afecte a los pedidos ya confirmados.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">5. Métodos de pago</h2>
+        <p>El pago se realiza mediante tarjeta de crédito o débito a través de la pasarela de pago segura Redsys. Monkey Binders no almacena en ningún momento los datos de la tarjeta del cliente; estos son gestionados directamente por la entidad bancaria a través de un entorno seguro y cifrado.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">6. Envío y plazos de entrega</h2>
+        <p>Los pedidos se envían a través de Correos a la dirección indicada por el cliente durante la compra, a domicilio o a un punto de recogida a elección del cliente. Los plazos de entrega son estimados y pueden variar según la ubicación de destino y la carga de trabajo del transportista.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">7. Derecho de desistimiento</h2>
+        <p>De acuerdo con el Texto Refundido de la Ley General para la Defensa de los Consumidores y Usuarios, el cliente dispone de un plazo de <strong>30 días naturales</strong> desde la recepción del producto para desistir de la compra sin necesidad de justificación, ampliando así el plazo mínimo legal de 14 días.</p>
+        <p><strong>Excepción — productos personalizados:</strong> conforme al artículo 103.c) del citado texto legal, <strong>el derecho de desistimiento NO es aplicable a los binders con grabado personalizado o hechos a medida según las especificaciones del cliente</strong>, al tratarse de bienes confeccionados de acuerdo con sus indicaciones. Estos productos únicamente podrán devolverse en caso de defecto de fabricación o error en el pedido imputable a Monkey Binders. Más detalle en la <a href="/politica-devoluciones.html" style="color:var(--accent-jungle);">Política de Devoluciones</a>.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">8. Garantía legal</h2>
+        <p>Todos los productos cuentan con la garantía legal de conformidad de 3 años prevista por la normativa española de consumo para productos con elementos digitales o de naturaleza duradera, respondiendo Monkey Binders de cualquier falta de conformidad existente en el momento de la entrega.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">9. Resolución de conflictos</h2>
+        <p>Para cualquier controversia, el cliente con condición de consumidor puede acudir a la Plataforma de Resolución de Litigios en Línea de la Unión Europea: <a href="https://ec.europa.eu/consumers/odr" target="_blank" style="color:var(--accent-jungle);">ec.europa.eu/consumers/odr</a>.</p>
     </main>
 
-    <!-- FOOTER OFICIAL -->
     <footer class="main-footer" id="contact">
         <div class="footer-container">
             <div>
@@ -288,18 +176,26 @@
     <div class="cart-drawer-overlay" id="cart-drawer-overlay">
         <div class="cart-drawer">
             <div class="cart-header">
-                <div class="cart-title"><span>TU CARRITO</span></div>
+                <div class="cart-title">
+                    <span>TU CARRITO</span>
+                </div>
                 <button class="close-drawer-btn" id="close-cart-btn">✕</button>
             </div>
+
             <div class="cart-items-list" id="cart-items-list"></div>
+
             <div class="cart-footer">
-                <div class="cart-subtotal"><span>SUBTOTAL:</span><span id="cart-subtotal">0.00 €</span></div>
-                <button class="checkout-btn" id="checkout-btn">FINALIZAR COMPRA</button>
+                <div class="cart-subtotal">
+                    <span>SUBTOTAL:</span>
+                    <span id="cart-subtotal">0.00 €</span>
+                </div>
+                <button class="checkout-btn" id="checkout-btn">
+                    FINALIZAR COMPRA
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- MOBILE NAV DRAWER OVERLAY -->
     <div class="mobile-nav-overlay" id="mobile-nav-overlay">
         <div class="mobile-nav-drawer">
             <div class="mobile-nav-header">
@@ -317,15 +213,17 @@
         </div>
     </div>
 
-    <!-- MODAL VISTA RÁPIDA / CUENTA / BUSCADOR -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
-            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);" id="close-modal-btn">✕</button>
+            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);"
+                id="close-modal-btn">✕</button>
             <div id="modal-body"></div>
         </div>
     </div>
 
     <div class="toast-container" id="toast-container"></div>
+
     <script type="module" src="/src/js/main.js"></script>
 </body>
+
 </html>

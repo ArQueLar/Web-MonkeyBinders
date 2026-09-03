@@ -16,7 +16,11 @@ export default defineConfig({
         admin: resolve(__dirname, 'admin.html'),
         pagoExito: resolve(__dirname, 'pago-exito.html'),
         pagoError: resolve(__dirname, 'pago-error.html'),
-        checkout: resolve(__dirname, 'checkout.html')
+        checkout: resolve(__dirname, 'checkout.html'),
+        avisoLegal: resolve(__dirname, 'aviso-legal.html'),
+        terminosCondiciones: resolve(__dirname, 'terminos-condiciones.html'),
+        politicaPrivacidad: resolve(__dirname, 'politica-privacidad.html'),
+        politicaDevoluciones: resolve(__dirname, 'politica-devoluciones.html')
       }
     }
   },

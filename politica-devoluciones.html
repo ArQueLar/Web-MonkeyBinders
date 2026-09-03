@@ -1,172 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle de Producto | Monkey Binders</title>
+    <title>Política de Devoluciones | Monkey Binders</title>
     <link rel="icon" href="/assets/Cosas Web/Logo/Monkey.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/src/css/styles.css">
-    <style>
-        .product-detail-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            align-items: start;
-        }
-        .product-gallery {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            text-align: center;
-        }
-        .product-main-img {
-            max-height: 400px;
-            margin: 0 auto;
-            object-fit: contain;
-            width: 100%;
-        }
-        .gallery-thumbs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .thumb-img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            padding: 4px;
-            background: var(--bg-card-img);
-        }
-        .thumb-img.active {
-            border-color: var(--accent-jungle);
-        }
-        .selector-group {
-            margin: 20px 0;
-        }
-        .size-options {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .size-btn {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-        .size-btn.active {
-            border-color: var(--accent-jungle);
-            background: var(--bg-surface);
-            color: var(--accent-jungle);
-        }
-        .qty-picker {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .qty-btn {
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            padding: 0;
-            line-height: 1;
-        }
-        .qty-btn:hover {
-            background: var(--bg-surface);
-            border-color: var(--accent-jungle);
-            color: var(--accent-jungle);
-        }
-        .qty-picker input {
-            width: 60px;
-            height: 40px;
-            text-align: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            background: var(--bg-input);
-            outline: none;
-            line-height: 40px;
-            margin: 0;
-            padding: 0;
-            -moz-appearance: textfield;
-        }
-        .qty-picker input::-webkit-outer-spin-button,
-        .qty-picker input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        /* Adaptación Responsive para Móviles */
-        @media (max-width: 992px) {
-            .product-detail-container {
-                grid-template-columns: 1fr !important;
-                gap: 24px;
-                margin: 20px auto;
-                padding: 0 16px;
-            }
-            .product-main-img {
-                max-height: 320px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .product-detail-container {
-                gap: 20px;
-                margin: 16px auto;
-                padding: 0 12px;
-            }
-            .product-main-img {
-                max-height: 250px;
-            }
-            .product-info-panel h1 {
-                font-size: 24px !important;
-            }
-            .size-options {
-                flex-direction: column;
-                gap: 8px;
-            }
-            .size-btn {
-                padding: 10px;
-                font-size: 12px;
-            }
-        }
-    </style>
 </head>
+
 <body>
 
     <div class="announcement-bar">
         <div class="announcement-content">
-            <div class="announcement-item"><span>⚡</span><span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span></div>
+            <div class="announcement-item">
+                <span>🚚</span>
+                <span>Envío gratis en pedidos superiores a 200€</span>
+            </div>
+            <div class="announcement-item">
+                <span>⚡</span>
+                <span>Binders Exclusivos con <span class="highlight">Grabado Láser de Precisión</span></span>
+            </div>
         </div>
     </div>
 
@@ -179,7 +38,7 @@
             <nav class="nav-container">
                 <ul class="nav-menu">
                     <li class="nav-item"><a href="/index.html" class="nav-link">Inicio</a></li>
-                    <li class="nav-item"><a href="/tienda/tienda.html" class="nav-link active">Tienda</a></li>
+                    <li class="nav-item"><a href="/tienda/tienda.html" class="nav-link">Tienda</a></li>
                     <li class="nav-item"><a href="/tienda/tienda.html#customizer" class="nav-link">Personalizar</a></li>
                     <li class="nav-item"><a href="/index.html#about" class="nav-link">Sobre Nosotros</a></li>
                     <li class="nav-item"><a href="/index.html#reviews" class="nav-link">Comunidad</a></li>
@@ -208,11 +67,45 @@
         </div>
     </header>
 
-    <main class="product-detail-container" id="product-detail-view">
-        <!-- Contenido generado dinámicamente desde app.js -->
+    <!-- POLÍTICA DE DEVOLUCIONES -->
+    <main style="max-width: 800px; margin: 60px auto; padding: 0 20px 60px 20px; line-height:1.7; font-size:14.5px; color:var(--text-secondary);" id="legal-page-content">
+        <h1 class="section-title" style="font-size:28px; margin-bottom:8px;">POLÍTICA DE DEVOLUCIONES</h1>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:30px;">Última actualización: 25 de agosto de 2026</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">1. Plazo de devolución</h2>
+        <p>Dispones de <strong>30 días naturales</strong> desde la recepción de tu pedido para solicitar una devolución, salvo en el caso de productos personalizados (ver punto 3).</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">2. Cómo distinguimos el motivo de la devolución</h2>
+        <p>Quién paga el envío de vuelta depende de por qué se devuelve el producto:</p>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin:16px 0;" class="checkout-grid">
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:16px;">
+                <div style="font-weight:800; color:var(--accent-jungle); margin-bottom:6px;">✓ Problema nuestro</div>
+                <p style="font-size:13px; margin:0;">El producto llegó dañado, defectuoso, o no corresponde con lo pedido. <strong>Monkey Binders asume el coste del envío de vuelta</strong> y del reenvío o reembolso.</p>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:16px;">
+                <div style="font-weight:800; color:var(--text-primary); margin-bottom:6px;">↩ Cambio de opinión</div>
+                <p style="font-size:13px; margin:0;">El producto llegó correctamente, pero simplemente ya no lo quieres. <strong>El cliente asume el coste del envío de vuelta.</strong></p>
+            </div>
+        </div>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">3. Productos personalizados</h2>
+        <p>Los binders con <strong>grabado personalizado</strong> (nombre, logo, diseño a medida solicitado a través de nuestro formulario de personalización) están hechos específicamente para ti y <strong>no admiten devolución por cambio de opinión</strong>, de acuerdo con la normativa de consumo aplicable a productos confeccionados a medida. Sí pueden devolverse si presentan un defecto de fabricación o un error respecto a lo solicitado — en ese caso, aplica la misma cobertura que un "problema nuestro" del punto 2.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">4. Condiciones del producto devuelto</h2>
+        <p>Para aceptar una devolución por cambio de opinión, el producto debe encontrarse sin usar, en su embalaje original y en perfecto estado. En devoluciones por defecto o error nuestro, no se exige que el producto esté en su embalaje original.</p>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">5. Cómo solicitar una devolución</h2>
+        <ol style="padding-left:20px;">
+            <li>Escríbenos a <strong>monkeybinders@gmail.com</strong> indicando el número de pedido y el motivo de la devolución.</li>
+            <li>Te confirmaremos si el motivo corresponde a un defecto/error nuestro o a un cambio de opinión, y te indicaremos cómo proceder con el envío de vuelta.</li>
+            <li>Una vez recibido y revisado el producto, procesaremos el reembolso o el reenvío en un plazo máximo de 14 días.</li>
+        </ol>
+
+        <h2 style="font-size:18px; color:var(--text-primary); margin:26px 0 10px;">6. Reembolsos</h2>
+        <p>Los reembolsos se realizan utilizando el mismo método de pago empleado en la compra original, en un plazo máximo de 14 días naturales desde que confirmamos la aceptación de la devolución.</p>
     </main>
 
-    <!-- FOOTER OFICIAL -->
     <footer class="main-footer" id="contact">
         <div class="footer-container">
             <div>
@@ -288,18 +181,26 @@
     <div class="cart-drawer-overlay" id="cart-drawer-overlay">
         <div class="cart-drawer">
             <div class="cart-header">
-                <div class="cart-title"><span>TU CARRITO</span></div>
+                <div class="cart-title">
+                    <span>TU CARRITO</span>
+                </div>
                 <button class="close-drawer-btn" id="close-cart-btn">✕</button>
             </div>
+
             <div class="cart-items-list" id="cart-items-list"></div>
+
             <div class="cart-footer">
-                <div class="cart-subtotal"><span>SUBTOTAL:</span><span id="cart-subtotal">0.00 €</span></div>
-                <button class="checkout-btn" id="checkout-btn">FINALIZAR COMPRA</button>
+                <div class="cart-subtotal">
+                    <span>SUBTOTAL:</span>
+                    <span id="cart-subtotal">0.00 €</span>
+                </div>
+                <button class="checkout-btn" id="checkout-btn">
+                    FINALIZAR COMPRA
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- MOBILE NAV DRAWER OVERLAY -->
     <div class="mobile-nav-overlay" id="mobile-nav-overlay">
         <div class="mobile-nav-drawer">
             <div class="mobile-nav-header">
@@ -317,15 +218,17 @@
         </div>
     </div>
 
-    <!-- MODAL VISTA RÁPIDA / CUENTA / BUSCADOR -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
-            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);" id="close-modal-btn">✕</button>
+            <button style="position:absolute; top:15px; right:15px; font-size:20px; color:var(--text-primary);"
+                id="close-modal-btn">✕</button>
             <div id="modal-body"></div>
         </div>
     </div>
 
     <div class="toast-container" id="toast-container"></div>
+
     <script type="module" src="/src/js/main.js"></script>
 </body>
+
 </html>
