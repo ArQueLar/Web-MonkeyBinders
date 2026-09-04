@@ -180,6 +180,38 @@ function renderCheckout(container, cart, session) {
         }, (errors) => {
             console.error('Selector de puntos de recogida:', errors);
         });
+
+        // Intento "a ciegas" de reducir el tamaño del widget de Sendcloud, que por
+        // defecto sale a pantalla completa (no tiene ninguna opción oficial de
+        // tamaño en su configuración). Buscamos el iframe/overlay que inyecta
+        // justo después de abrirse, y le forzamos un tamaño más pequeño y
+        // centrado. AVISO: esto puede no funcionar si Sendcloud lo sirve como
+        // iframe de otro dominio (los navegadores no dejan tocar el contenido de
+        // dentro por seguridad) — en ese caso solo se vería más recortado, nunca
+        // roto. Si no cambia nada visualmente, es justo por eso.
+        setTimeout(() => shrinkSendcloudWidget(), 300);
+    }
+
+    function shrinkSendcloudWidget() {
+        // Buscamos cualquier iframe cuyo src apunte a Sendcloud, o cualquier
+        // overlay de posición fija con z-index alto que no sea nuestro
+        const candidates = [
+            ...document.querySelectorAll('iframe[src*="sendcloud"]'),
+            ...document.querySelectorAll('div[class*="sendcloud" i]'),
+            ...document.querySelectorAll('div[id*="sendcloud" i]')
+        ];
+
+        candidates.forEach(el => {
+            el.style.setProperty('width', 'min(600px, 92vw)', 'important');
+            el.style.setProperty('height', 'min(650px, 85vh)', 'important');
+            el.style.setProperty('max-width', '600px', 'important');
+            el.style.setProperty('max-height', '650px', 'important');
+            el.style.setProperty('top', '50%', 'important');
+            el.style.setProperty('left', '50%', 'important');
+            el.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+            el.style.setProperty('border-radius', 'var(--radius-md)', 'important');
+            el.style.setProperty('box-shadow', '0 20px 60px rgba(0,0,0,0.4)', 'important');
+        });
     }
 
     document.querySelectorAll('.checkout-delivery-radio').forEach(radio => {
