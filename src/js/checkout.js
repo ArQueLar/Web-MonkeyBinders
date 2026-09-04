@@ -121,7 +121,7 @@ function renderCheckout(container, cart, session) {
             </div>
         </div>
     `;
-    let selectedServicePointId = null;
+    let selectedServicePoint = null; // { id, name, street, house_number, city, postNumber }
 
     function updateShippingEstimate() {
         // Estimación visual en el navegador (el importe real y definitivo lo calcula
@@ -139,50 +139,70 @@ function renderCheckout(container, cart, session) {
     }
     updateShippingEstimate();
 
-    // --- Elegir método de envío: si es recogida, buscamos puntos cercanos ---
+    // --- Elegir método de envío: si es recogida, se abre el selector visual de Sendcloud ---
     const pickupPicker = document.getElementById('checkout-pickup-picker');
+    const postalCodeField = document.getElementById('checkout-postal-code');
+    const countryField = document.getElementById('checkout-country');
+
+    function renderPickupPickerButton() {
+        pickupPicker.style.display = 'block';
+        pickupPicker.innerHTML = `
+            <button type="button" class="btn-secondary" id="open-spp-btn" style="width:100%; justify-content:center; padding:10px;">📍 Elegir punto de recogida</button>
+            <div id="spp-selected-info" style="font-size:12.5px; color:var(--text-secondary); margin-top:8px;"></div>
+        `;
+        document.getElementById('open-spp-btn').addEventListener('click', openServicePointPicker);
+    }
+
+    function openServicePointPicker() {
+        if (typeof sendcloud === 'undefined') {
+            showToast('⚠ No se pudo cargar el selector de puntos de recogida');
+            return;
+        }
+
+        // Si el cliente no ha escrito código postal todavía, mostramos Madrid por
+        // defecto para que el mapa no salga vacío — en cuanto lo rellene, se
+        // reabre solo con la ubicación correcta (ver el listener de más abajo).
+        const postalCode = postalCodeField.value.trim() || '28001';
+        const country = (countryField.value || 'ES').toLowerCase();
+
+        sendcloud.servicePoints.open({
+            apiKey: import.meta.env.VITE_SENDCLOUD_PUBLIC_KEY,
+            country,
+            postalCode,
+            language: 'es-es',
+            carriers: 'correos'
+        }, (servicePoint, postNumber) => {
+            selectedServicePoint = { ...servicePoint, postNumber };
+            const infoEl = document.getElementById('spp-selected-info');
+            if (infoEl) {
+                infoEl.innerHTML = `✓ <strong>${servicePoint.name}</strong> — ${servicePoint.street} ${servicePoint.house_number || ''}, ${servicePoint.city}`;
+            }
+        }, (errors) => {
+            console.error('Selector de puntos de recogida:', errors);
+        });
+    }
+
     document.querySelectorAll('.checkout-delivery-radio').forEach(radio => {
-        radio.addEventListener('change', async () => {
-            selectedServicePointId = null;
+        radio.addEventListener('change', () => {
+            selectedServicePoint = null;
             if (radio.value !== 'pickup' || !radio.checked) {
                 pickupPicker.style.display = 'none';
                 pickupPicker.innerHTML = '';
                 return;
             }
-
-            const postalCode = document.getElementById('checkout-postal-code').value.trim();
-            const country = document.getElementById('checkout-country').value;
-            if (!postalCode) {
-                pickupPicker.style.display = 'block';
-                pickupPicker.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">Escribe primero tu código postal arriba.</p>`;
-                return;
-            }
-
-            pickupPicker.style.display = 'block';
-            pickupPicker.innerHTML = `<p style="font-size:12px; color:var(--text-muted);">Buscando puntos de recogida cercanos...</p>`;
-
-            try {
-                const r = await fetch(`/api/create-payment?searchServicePoints=1&postalCode=${encodeURIComponent(postalCode)}&country=${country}`);
-                const result = await r.json();
-
-                if (!result.success || result.points.length === 0) {
-                    pickupPicker.innerHTML = `<p style="font-size:12px; color:var(--text-muted);">No se encontró ningún punto de recogida cerca de ese código postal.</p>`;
-                    return;
-                }
-
-                pickupPicker.innerHTML = `
-                    <select class="form-input" id="checkout-service-point-select">
-                        ${result.points.map(p => `<option value="${p.id}">${p.name} — ${p.street} ${p.houseNumber || ''}, ${p.city}</option>`).join('')}
-                    </select>
-                `;
-                selectedServicePointId = Number(result.points[0].id);
-                document.getElementById('checkout-service-point-select').addEventListener('change', (e) => {
-                    selectedServicePointId = Number(e.target.value);
-                });
-            } catch (err) {
-                pickupPicker.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">No se pudieron buscar puntos de recogida. Inténtalo de nuevo.</p>`;
-            }
+            renderPickupPickerButton();
         });
+    });
+
+    // Si el cliente ya había elegido "recogida en punto" y cambia el código
+    // postal, reabrimos el selector automáticamente con la ubicación nueva —
+    // no hace falta volver a tocar la opción de envío.
+    postalCodeField.addEventListener('change', () => {
+        const pickupRadio = document.querySelector('.checkout-delivery-radio[value="pickup"]');
+        if (pickupRadio?.checked) {
+            selectedServicePoint = null;
+            openServicePointPicker();
+        }
     });
 
     // --- Pagar ---
@@ -191,7 +211,7 @@ function renderCheckout(container, cart, session) {
         if (!form.reportValidity()) return;
 
         const deliveryMethod = form.querySelector('input[name="deliveryMethod"]:checked').value;
-        if (deliveryMethod === 'pickup' && !selectedServicePointId) {
+        if (deliveryMethod === 'pickup' && !selectedServicePoint) {
             showCheckoutError('Elige un punto de recogida antes de continuar.');
             return;
         }
@@ -210,7 +230,8 @@ function renderCheckout(container, cart, session) {
                     customerEmail: formData.get('email'),
                     customerName: formData.get('name'),
                     deliveryMethod,
-                    servicePointId: selectedServicePointId,
+                    servicePointId: selectedServicePoint?.id,
+                    servicePointPostNumber: selectedServicePoint?.postNumber,
                     shippingAddress: {
                         street: formData.get('street'),
                         city: formData.get('city'),
