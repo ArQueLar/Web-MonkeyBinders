@@ -53,20 +53,6 @@ function renderCheckout(container, cart, session) {
                     <input type="email" name="email" placeholder="Correo electrónico" class="form-input" value="${user?.email || ''}" required>
                     <input type="tel" name="phone" placeholder="Teléfono" class="form-input" required>
 
-                    <h2 style="font-size:16px; margin:18px 0 4px;">DIRECCIÓN DE ENVÍO</h2>
-                    <input type="text" name="street" id="checkout-street" placeholder="Calle y número" class="form-input" required>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" name="city" id="checkout-city" placeholder="Ciudad" class="form-input" required style="flex:2;">
-                        <input type="text" name="postalCode" placeholder="Código postal" class="form-input" required style="flex:1;" id="checkout-postal-code">
-                    </div>
-                    <select name="country" class="form-input" id="checkout-country">
-                        <option value="ES" selected>España</option>
-                        <option value="PT">Portugal</option>
-                        <option value="FR">Francia</option>
-                        <option value="DE">Alemania</option>
-                        <option value="IT">Italia</option>
-                    </select>
-
                     <h2 style="font-size:16px; margin:18px 0 4px;">MÉTODO DE ENVÍO</h2>
                     <div style="display:flex; flex-direction:column; gap:10px;">
                         <label style="display:flex; align-items:center; gap:10px; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px 14px; cursor:pointer;">
@@ -78,7 +64,24 @@ function renderCheckout(container, cart, session) {
                             <span>📮 Recogida en punto de Correos</span>
                         </label>
                     </div>
-                    <div id="checkout-pickup-picker" style="display:none; margin-top:6px;"></div>
+
+                    <div style="display:flex; gap:10px; margin-top:4px;">
+                        <input type="text" name="postalCode" placeholder="Código postal" class="form-input" required style="flex:1;" id="checkout-postal-code">
+                        <select name="country" class="form-input" id="checkout-country" style="flex:1;">
+                            <option value="ES" selected>España</option>
+                            <option value="PT">Portugal</option>
+                            <option value="FR">Francia</option>
+                            <option value="DE">Alemania</option>
+                            <option value="IT">Italia</option>
+                        </select>
+                    </div>
+
+                    <div id="checkout-home-fields" style="display:flex; flex-direction:column; gap:12px; overflow:hidden; max-height:130px; opacity:1; transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.35s ease;">
+                        <input type="text" name="street" id="checkout-street" placeholder="Calle y número" class="form-input" required>
+                        <input type="text" name="city" id="checkout-city" placeholder="Ciudad" class="form-input" required>
+                    </div>
+
+                    <div id="checkout-pickup-picker" style="overflow:hidden; max-height:0; opacity:0; transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.35s ease;"></div>
 
                     <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-muted); cursor:pointer; margin-top:14px;">
                         <input type="checkbox" name="acceptTerms" required style="margin-top:2px; flex-shrink:0;">
@@ -145,7 +148,6 @@ function renderCheckout(container, cart, session) {
     const countryField = document.getElementById('checkout-country');
 
     function renderPickupPickerButton() {
-        pickupPicker.style.display = 'block';
         pickupPicker.innerHTML = `
             <button type="button" class="btn-secondary" id="open-spp-btn" style="width:100%; justify-content:center; padding:10px;">📍 Elegir punto de recogida</button>
             <div id="spp-selected-info" style="font-size:12.5px; color:var(--text-secondary); margin-top:8px;"></div>
@@ -185,24 +187,35 @@ function renderCheckout(container, cart, session) {
     document.querySelectorAll('.checkout-delivery-radio').forEach(radio => {
         radio.addEventListener('change', () => {
             selectedServicePoint = null;
+            const isPickup = radio.value === 'pickup' && radio.checked;
 
-            // A domicilio hace falta la calle y la ciudad; para recogida en
-            // punto no (el paquete no va a su casa) — solo el código postal,
-            // que sigue haciendo falta para buscar los puntos cercanos.
+            const homeFields = document.getElementById('checkout-home-fields');
             const streetField = document.getElementById('checkout-street');
             const cityField = document.getElementById('checkout-city');
-            const isPickup = radio.value === 'pickup' && radio.checked;
-            streetField.required = !isPickup;
-            cityField.required = !isPickup;
-            streetField.placeholder = isPickup ? 'Calle y número (opcional para recogida)' : 'Calle y número';
-            cityField.placeholder = isPickup ? 'Ciudad (opcional)' : 'Ciudad';
 
-            if (radio.value !== 'pickup' || !radio.checked) {
-                pickupPicker.style.display = 'none';
+            if (isPickup) {
+                // Se cierra "calle/ciudad" y se abre el hueco de recogida, a la vez
+                homeFields.style.maxHeight = '0px';
+                homeFields.style.opacity = '0';
+                homeFields.style.marginTop = '-12px';
+                streetField.required = false;
+                cityField.required = false;
+
+                pickupPicker.style.maxHeight = '500px';
+                pickupPicker.style.opacity = '1';
+                renderPickupPickerButton();
+            } else {
+                // Se cierra el hueco de recogida y se abre "calle/ciudad", a la vez
+                pickupPicker.style.maxHeight = '0px';
+                pickupPicker.style.opacity = '0';
                 pickupPicker.innerHTML = '';
-                return;
+
+                homeFields.style.maxHeight = '130px';
+                homeFields.style.opacity = '1';
+                homeFields.style.marginTop = '0px';
+                streetField.required = true;
+                cityField.required = true;
             }
-            renderPickupPickerButton();
         });
     });
 
