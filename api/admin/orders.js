@@ -198,7 +198,7 @@ export default async function handler(req, res) {
                 if (!testEmail) {
                     return res.status(400).json({ success: false, error: 'Falta el email de destino' });
                 }
-                await sendOrderConfirmationEmail({
+                const result = await sendOrderConfirmationEmail({
                     to: testEmail,
                     customerName: 'Cliente de Prueba',
                     orderName: 'S00000-TEST',
@@ -210,6 +210,9 @@ export default async function handler(req, res) {
                     shippingCost: 0,
                     total: 179.97
                 });
+                if (!result.success) {
+                    return res.status(502).json({ success: false, error: result.error });
+                }
                 return res.status(200).json({ success: true });
             }
 

@@ -43,8 +43,9 @@ function buildOrderConfirmationHtml({ customerName, orderName, items, subtotal, 
 export async function sendOrderConfirmationEmail({ to, customerName, orderName, items, subtotal, shippingCost, total }) {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) {
-        console.error('Falta RESEND_API_KEY — no se pudo enviar el email de confirmación del pedido', orderName);
-        return;
+        const message = 'Falta RESEND_API_KEY en las variables de entorno de Vercel';
+        console.error(message);
+        return { success: false, error: message };
     }
 
     try {
@@ -63,11 +64,16 @@ export async function sendOrderConfirmationEmail({ to, customerName, orderName, 
             })
         });
 
+        const data = await response.json().catch(() => null);
+
         if (!response.ok) {
-            const data = await response.json().catch(() => null);
             console.error('Resend rechazó el email de confirmación:', data);
+            return { success: false, error: data?.message || `Resend devolvió un error (${response.status})` };
         }
+
+        return { success: true, id: data?.id };
     } catch (err) {
         console.error('Error de conexión al enviar el email de confirmación:', err.message);
+        return { success: false, error: err.message };
     }
 }
