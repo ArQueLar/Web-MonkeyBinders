@@ -154,7 +154,7 @@ function renderDashboard(container) {
             });
             const result = await r.json();
             if (result.success) {
-                statusEl.textContent = `✓ Enviado a ${email} — revisa la bandeja (y el spam)`;
+                statusEl.textContent = `✓ Enviado a ${email} — ID de Resend: ${result.resendId || '(sin ID)'} — búscalo en resend.com/emails`;
                 statusEl.style.color = 'var(--accent-jungle)';
             } else {
                 statusEl.textContent = `⚠ ${result.error || 'No se pudo enviar'}`;
