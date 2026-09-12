@@ -40,6 +40,7 @@ function renderProductDetail(currentProduct) {
 
     const enviopersonalizado = currentProduct.name.toLowerCase() == "envio personalizado" ;
     const isXLMasterSet = currentProduct.hasXLMasterSet === true;
+    const isOutOfStock = !currentProduct.services && typeof currentProduct.stock === 'number' && currentProduct.stock <= 0;
     const engravingOptions = Array.isArray(currentProduct.engravingOptions) ? currentProduct.engravingOptions : [];
 
     // Binders normales: solo "3x3 (360 bolsillos)", fijo, sin alternativa.
@@ -124,9 +125,18 @@ function renderProductDetail(currentProduct) {
 
                 <div style="font-size: 28px; font-weight: 800; color: var(--accent-jungle);" id="detail-price">${currentPrice.toFixed(2)} €</div>
 
+                ${isOutOfStock ? `
+                <div style="margin-top:16px; padding:12px 16px; border-radius:var(--radius-sm); background:var(--accent-error-bg); color:var(--accent-error); font-size:13.5px; font-weight:700; text-align:center;">
+                    😔 Este binder está agotado ahora mismo
+                </div>
+                <button class="btn-primary" id="btn-add-detail" disabled style="width: 100%; margin-top: 12px; padding: 16px; opacity:0.5; cursor:not-allowed;">
+                    🛒 AGOTADO
+                </button>
+                ` : `
                 <button class="btn-primary" id="btn-add-detail" style="width: 100%; margin-top: 20px; padding: 16px;">
                     🛒 AÑADIR AL CARRITO
                 </button>
+                `}
             </div>
 
             <div style="grid-column: 1 / -1; margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px;">

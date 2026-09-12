@@ -178,12 +178,15 @@ export function createProductCardHTML(p) {
 
     const targetUrl = `/tienda/producto.html?id=${p.id}`; // ruta absoluta: la tarjeta funciona igual se pinte donde se pinte
 
+    // Los servicios (ej. envío personalizado) no llevan stock — solo los productos físicos.
+    const isOutOfStock = !p.services && typeof p.stock === 'number' && p.stock <= 0;
+
     return `
     <div class="product-card" data-id="${p.id}">
         <a href="${targetUrl}" class="product-image-wrap">
-            ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
-            <img src="${frontImgPath}" alt="${p.name}" class="${p.backImg !== p.frontImg ? 'img-front' : 'img-front-only'}" loading="lazy" decoding="async">
-            ${p.backImg !== p.frontImg ? `<img src="${backImgPath}" alt="${p.name} Trasero" class="img-back" loading="lazy" decoding="async">` : ''}
+            ${isOutOfStock ? `<span class="product-badge" style="background:var(--accent-error);">AGOTADO</span>` : (p.badge ? `<span class="product-badge">${p.badge}</span>` : '')}
+            <img src="${frontImgPath}" alt="${p.name}" class="${p.backImg !== p.frontImg ? 'img-front' : 'img-front-only'}" loading="lazy" decoding="async" style="${isOutOfStock ? 'opacity:0.5;' : ''}">
+            ${p.backImg !== p.frontImg ? `<img src="${backImgPath}" alt="${p.name} Trasero" class="img-back" loading="lazy" decoding="async" style="${isOutOfStock ? 'opacity:0.5;' : ''}">` : ''}
         </a>
         <div class="product-details">
             <div class="product-category">${categoryLabel}</div>
@@ -197,7 +200,7 @@ export function createProductCardHTML(p) {
                 <div class="product-price">
                     <span class="current-price">${p.price.toFixed(2)} €</span>
                 </div>
-                <a href="${targetUrl}" class="add-cart-btn">Ver Opciones</a>
+                <a href="${targetUrl}" class="add-cart-btn" style="${isOutOfStock ? 'background:var(--text-muted); border-color:var(--text-muted);' : ''}">${isOutOfStock ? 'Agotado' : 'Ver Opciones'}</a>
             </div>
         </div>
     </div>

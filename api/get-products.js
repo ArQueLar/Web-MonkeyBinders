@@ -59,7 +59,7 @@ export default async function handler(req, res) {
                     fields: [
                         'id', 'name', 'list_price', 'description_sale', 'description_ecommerce',
                         'public_categ_ids', 'product_template_image_ids', 'attribute_line_ids', 'taxes_id',
-                        'create_date'
+                        'create_date', 'qty_available'
                     ],
                     limit: 200
                 }
@@ -207,7 +207,8 @@ export default async function handler(req, res) {
                 featured: false,
                 services: p.id === 45, // el envío personalizado se muestra como "SERVICIO" en su tarjeta, no como grabado
                 hasXLMasterSet: hasXLByProductId[p.id] === true,
-                engravingOptions: engravingOptionsByProductId[p.id] || []
+                engravingOptions: engravingOptionsByProductId[p.id] || [],
+                stock: typeof p.qty_available === 'number' ? p.qty_available : null
             };
         });
 

@@ -12,6 +12,7 @@
 
 import { verifyNotification, isPaymentAuthorized } from './_lib/redsys.js';
 import { callOdoo } from './_lib/auth.js';
+import { sendOrderConfirmationEmail } from './_lib/email.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -190,6 +191,27 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
         'sale.order', 'action_confirm',
         [[newOrderId]]
     ]);
+
+    // Leemos el nombre real del pedido en Odoo (ej. "S00042") para mostrarlo
+    // en el email de confirmación — es el número que el cliente reconocerá.
+    const orderNameData = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+        ODOO_DB, uid, ODOO_API_KEY,
+        'sale.order', 'read',
+        [[newOrderId]],
+        { fields: ['name'] }
+    ]);
+    const odooOrderName = orderNameData.length ? orderNameData[0].name : orderReference;
+
+    const subtotal = cartData.items.reduce((sum, i) => sum + (Number(i.price) || 0) * (i.quantity || 1), 0);
+    await sendOrderConfirmationEmail({
+        to: cartData.customerEmail,
+        customerName: cartData.customerName || cartData.customerEmail,
+        orderName: odooOrderName,
+        items: cartData.items,
+        subtotal,
+        shippingCost: cartData.shippingCost || 0,
+        total: amountTotal
+    });
 
     console.log(`✓ Pedido creado en Odoo (id ${newOrderId}) para el pago ${orderReference}, importe ${amountTotal}€ (envío: ${cartData.shippingCost || 0}€, ${cartData.deliveryMethod === 'pickup' ? 'recogida en punto' : 'a domicilio'})`);
 }
