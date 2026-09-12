@@ -97,6 +97,12 @@ function renderDashboard(container) {
         </div>
         <div id="admin-tab-production" class="account-tab"></div>
         <div id="admin-tab-orders" class="account-tab" style="display:none;"></div>
+
+        <div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border-color); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="email" id="test-email-input" placeholder="tu-email@ejemplo.com" class="form-input" style="max-width:260px;">
+            <button class="btn-secondary" id="send-test-email-btn" style="padding:8px 16px; font-size:12px;">📧 ENVIAR EMAIL DE PRUEBA</button>
+            <span id="test-email-status" style="font-size:12.5px;"></span>
+        </div>
     `;
 
     const tabBtns = container.querySelectorAll('.admin-tab-btn');
@@ -125,6 +131,39 @@ function renderDashboard(container) {
     logoutBtn.addEventListener('mouseleave', () => {
         logoutBtn.style.backgroundColor = 'var(--bg-card)';
         logoutBtn.style.color = 'var(--accent-error)';
+    });
+
+    document.getElementById('send-test-email-btn').addEventListener('click', async () => {
+        const emailInput = document.getElementById('test-email-input');
+        const statusEl = document.getElementById('test-email-status');
+        const email = emailInput.value.trim();
+        if (!email) {
+            statusEl.textContent = '⚠ Escribe un email primero';
+            statusEl.style.color = 'var(--accent-error)';
+            return;
+        }
+
+        statusEl.textContent = 'Enviando...';
+        statusEl.style.color = 'var(--text-muted)';
+
+        try {
+            const r = await fetch('/api/admin/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'test-email', testEmail: email })
+            });
+            const result = await r.json();
+            if (result.success) {
+                statusEl.textContent = `✓ Enviado a ${email} — revisa la bandeja (y el spam)`;
+                statusEl.style.color = 'var(--accent-jungle)';
+            } else {
+                statusEl.textContent = `⚠ ${result.error || 'No se pudo enviar'}`;
+                statusEl.style.color = 'var(--accent-error)';
+            }
+        } catch (err) {
+            statusEl.textContent = '⚠ Error de conexión';
+            statusEl.style.color = 'var(--accent-error)';
+        }
     });
 
     loadOrders();

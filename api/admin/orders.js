@@ -15,6 +15,7 @@
 
 import { getAdminSessionFromRequest, callOdoo } from '../_lib/auth.js';
 import { createSendcloudParcel, getSendcloudParcelByTrackingNumber, downloadSendcloudLabel, listSendcloudShippingMethods, searchSendcloudServicePoints } from '../_lib/sendcloud.js';
+import { sendOrderConfirmationEmail } from '../_lib/email.js';
 
 // Peso por defecto de un envío (kg) — se puede cambiar desde el propio panel al
 // crear la etiqueta; este valor solo se usa si por lo que sea no llega ninguno.
@@ -189,6 +190,29 @@ export default async function handler(req, res) {
         const { pickingId, orderId, trackingNumber, action } = req.body || {};
 
         try {
+            // "test-email" — manda un email de confirmación de pedido de mentira,
+            // para comprobar que Resend está bien configurado sin gastar otro
+            // pago de prueba real.
+            if (action === 'test-email') {
+                const { testEmail } = req.body || {};
+                if (!testEmail) {
+                    return res.status(400).json({ success: false, error: 'Falta el email de destino' });
+                }
+                await sendOrderConfirmationEmail({
+                    to: testEmail,
+                    customerName: 'Cliente de Prueba',
+                    orderName: 'S00000-TEST',
+                    items: [
+                        { name: 'Binder de Prueba (3x3, Normal)', price: 49.99, quantity: 1 },
+                        { name: 'Binder de Prueba (4x3 XL, Sin logo)', price: 64.99, quantity: 2 }
+                    ],
+                    subtotal: 179.97,
+                    shippingCost: 0,
+                    total: 179.97
+                });
+                return res.status(200).json({ success: true });
+            }
+
             // "ready" / "deliver" — avanzar el estado de una transferencia en Odoo
             if (action === 'ready' || action === 'deliver') {
                 if (!pickingId) {
