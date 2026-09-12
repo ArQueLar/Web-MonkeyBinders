@@ -54,9 +54,9 @@ function renderCheckout(container, cart, session) {
                     <input type="tel" name="phone" placeholder="Teléfono" class="form-input" required>
 
                     <h2 style="font-size:16px; margin:18px 0 4px;">DIRECCIÓN DE ENVÍO</h2>
-                    <input type="text" name="street" placeholder="Calle y número" class="form-input" required>
+                    <input type="text" name="street" id="checkout-street" placeholder="Calle y número" class="form-input" required>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" name="city" placeholder="Ciudad" class="form-input" required style="flex:2;">
+                        <input type="text" name="city" id="checkout-city" placeholder="Ciudad" class="form-input" required style="flex:2;">
                         <input type="text" name="postalCode" placeholder="Código postal" class="form-input" required style="flex:1;" id="checkout-postal-code">
                     </div>
                     <select name="country" class="form-input" id="checkout-country">
@@ -185,6 +185,18 @@ function renderCheckout(container, cart, session) {
     document.querySelectorAll('.checkout-delivery-radio').forEach(radio => {
         radio.addEventListener('change', () => {
             selectedServicePoint = null;
+
+            // A domicilio hace falta la calle y la ciudad; para recogida en
+            // punto no (el paquete no va a su casa) — solo el código postal,
+            // que sigue haciendo falta para buscar los puntos cercanos.
+            const streetField = document.getElementById('checkout-street');
+            const cityField = document.getElementById('checkout-city');
+            const isPickup = radio.value === 'pickup' && radio.checked;
+            streetField.required = !isPickup;
+            cityField.required = !isPickup;
+            streetField.placeholder = isPickup ? 'Calle y número (opcional para recogida)' : 'Calle y número';
+            cityField.placeholder = isPickup ? 'Ciudad (opcional)' : 'Ciudad';
+
             if (radio.value !== 'pickup' || !radio.checked) {
                 pickupPicker.style.display = 'none';
                 pickupPicker.innerHTML = '';
