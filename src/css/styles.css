@@ -2,7 +2,7 @@
    MONKEY BINDERS - Paleta Oficial y Diseño 100% Adaptable / Responsive
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('./fonts.css');
 
 :root {
     /* Paleta Equilibrada: Off-White Base + Crema #F5E6D2 en Secciones */
