@@ -45,9 +45,9 @@ function renderDashboard(container, user) {
     container.innerHTML = `
         <div class="account-layout">
             <aside class="account-sidebar">
-                <div class="account-avatar">${user.name.charAt(0).toUpperCase()}</div>
-                <div class="account-name">${user.name}</div>
-                <div class="account-email">${user.email}</div>
+                <div class="account-avatar">${escapeHtml(user.name.charAt(0).toUpperCase())}</div>
+                <div class="account-name">${escapeHtml(user.name)}</div>
+                <div class="account-email">${escapeHtml(user.email)}</div>
                 <nav class="account-nav">
                     <button class="account-nav-btn active" data-tab="profile">MI PERFIL</button>
                     <button class="account-nav-btn" data-tab="orders">MIS PEDIDOS</button>
@@ -88,9 +88,9 @@ function renderProfileTab(user) {
 
         <form id="profile-form" style="max-width:400px; display:flex; flex-direction:column; gap:12px;">
             <div class="option-group-title">NOMBRE</div>
-            <input type="text" name="name" class="form-input" value="${user.name}" required>
+            <input type="text" name="name" class="form-input" value="${escapeHtml(user.name)}" required>
             <div class="option-group-title">CORREO ELECTRÓNICO</div>
-            <input type="email" class="form-input" value="${user.email}" disabled style="opacity:0.6;">
+            <input type="email" class="form-input" value="${escapeHtml(user.email)}" disabled style="opacity:0.6;">
             <button type="submit" class="btn-primary" id="profile-save-btn" style="width:fit-content; padding:10px 20px; margin-top:6px;">GUARDAR CAMBIOS</button>
             <div id="profile-status" style="font-size:12.5px; display:none;"></div>
         </form>
@@ -228,7 +228,7 @@ async function renderOrdersTab() {
             return `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-color); gap:10px; flex-wrap:wrap;">
                 <div>
-                    <div style="font-size:14px; font-weight:700; color:var(--text-primary);">${o.name}</div>
+                    <div style="font-size:14px; font-weight:700; color:var(--text-primary);">${escapeHtml(o.name)}</div>
                     <div style="font-size:12px; color:var(--text-muted);">${new Date(o.date_order).toLocaleDateString('es-ES')} · ${ORDER_STATE_LABELS[o.state] || o.state}</div>
                     ${shippingInfo ? `
                         <div style="margin-top:6px; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:${shippingInfo.color};">

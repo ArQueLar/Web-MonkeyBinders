@@ -8,6 +8,7 @@ import crypto from 'crypto';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
+const ADMIN_SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000; // el panel de administración caduca antes: 8 horas
 const COOKIE_NAME = 'mb_session';
 const ADMIN_COOKIE_NAME = 'mb_admin_session'; // separada a propósito: nunca se mezcla con la de un cliente
 
@@ -37,7 +38,10 @@ export function signSession(payload) {
 export function verifySession(token) {
     if (!token || !token.includes('.')) return null;
     const [body, signature] = token.split('.');
-    if (sign(body) !== signature) return null; // firma no coincide: manipulado o corrupto
+    // Comparación en tiempo constante (evita ataques de temporización sobre la firma)
+    const expected = Buffer.from(sign(body));
+    const given = Buffer.from(String(signature || ''));
+    if (expected.length !== given.length || !crypto.timingSafeEqual(expected, given)) return null;
     try {
         const payload = JSON.parse(base64urlDecode(body));
         if (Date.now() - payload.iat > SESSION_MAX_AGE_MS) return null; // caducado
@@ -83,11 +87,13 @@ export function clearSessionCookie(res) {
 
 export function getAdminSessionFromRequest(req) {
     const session = verifySession(getCookie(req, ADMIN_COOKIE_NAME));
-    return (session && session.role === 'admin') ? session : null;
+    if (!session || session.role !== 'admin') return null;
+    if (Date.now() - session.iat > ADMIN_SESSION_MAX_AGE_MS) return null;
+    return session;
 }
 
 export function setAdminSessionCookie(res, token) {
-    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_MS / 1000}`);
+    appendSetCookie(res, `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${ADMIN_SESSION_MAX_AGE_MS / 1000}`);
 }
 
 export function clearAdminSessionCookie(res) {

@@ -73,6 +73,26 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
     const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, ODOO_LOGIN, ODOO_API_KEY, {}]);
     if (!uid) throw new Error('No se pudo autenticar con Odoo');
 
+    // Idempotencia: Redsys puede reenviar la notificación. Si ya existe un pedido con
+    // esta referencia, no creamos otro (ni mandamos otro email).
+    const already = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+        ODOO_DB, uid, ODOO_API_KEY,
+        'sale.order', 'search_read',
+        [[['client_order_ref', '=', orderReference]]],
+        { fields: ['id'], limit: 1 }
+    ]);
+    if (already.length > 0) {
+        console.log(`Notificación repetida para el pago ${orderReference}: el pedido ya existe, se ignora.`);
+        return;
+    }
+
+    // Comprobación de importe: lo cobrado debe coincidir con lo que calculó el servidor.
+    const expectedTotal = (cartData.items || []).reduce((sum, i) => sum + (Number(i.price) || 0) * (Number(i.quantity) || 1), 0)
+        + (Number(cartData.shippingCost) || 0);
+    if (Math.abs(expectedTotal - amountTotal) > 0.02) {
+        throw new Error(`El importe cobrado (${amountTotal}) no coincide con el esperado (${expectedTotal.toFixed(2)}). Revisar a mano.`);
+    }
+
     const address = cartData.shippingAddress || {};
 
     // Buscamos el país por su código ISO-2 (ej. "ES") para poder guardarlo en el cliente
@@ -92,7 +112,7 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
         email: cartData.customerEmail,
         street: address.street,
         city: address.city,
-        zip: address.zip,
+        zip: address.postalCode || address.zip,
         phone: address.phone
     };
     if (countryId) partnerValues.country_id = countryId;
@@ -109,11 +129,26 @@ async function createOdooOrderFromPayment(orderReference, cartData, amountTotal)
     ]);
     if (existingPartners.length > 0) {
         partnerId = existingPartners[0].id;
-        await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+        // No machacamos los datos de un cliente existente (el nombre/email pueden venir
+        // de otra persona que use el mismo email): solo rellenamos lo que le falte.
+        const current = (await callOdoo(ODOO_URL, 'object', 'execute_kw', [
             ODOO_DB, uid, ODOO_API_KEY,
-            'res.partner', 'write',
-            [[partnerId], partnerValues]
-        ]);
+            'res.partner', 'read',
+            [[partnerId]],
+            { fields: ['street', 'city', 'zip', 'phone', 'country_id'] }
+        ]))[0] || {};
+        const fill = {};
+        for (const key of ['street', 'city', 'zip', 'phone']) {
+            if (!current[key] && partnerValues[key]) fill[key] = partnerValues[key];
+        }
+        if (!current.country_id && partnerValues.country_id) fill.country_id = partnerValues.country_id;
+        if (Object.keys(fill).length > 0) {
+            await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'res.partner', 'write',
+                [[partnerId], fill]
+            ]);
+        }
     } else {
         partnerId = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
             ODOO_DB, uid, ODOO_API_KEY,

@@ -17,7 +17,10 @@ export default async function handler(req, res) {
         return res.status(401).json({ success: false, error: 'No has iniciado sesión' });
     }
 
-    const { name, currentPassword, newPassword } = req.body || {};
+    const body = req.body || {};
+    const name = typeof body.name === 'string' ? body.name.trim().slice(0, 120) : '';
+    const currentPassword = typeof body.currentPassword === 'string' ? body.currentPassword : '';
+    const newPassword = typeof body.newPassword === 'string' ? body.newPassword.slice(0, 200) : '';
 
     const ODOO_URL = process.env.ODOO_URL;
     const ODOO_DB = process.env.ODOO_DB;
@@ -78,6 +81,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ success: true, user: { name: updatedName, email: session.email } });
     } catch (err) {
-        return res.status(500).json({ success: false, error: 'Error al actualizar el perfil en Odoo', detail: err.message });
+        console.error('update-profile:', err.message);
+        return res.status(500).json({ success: false, error: 'No se pudo actualizar el perfil. Inténtalo de nuevo más tarde.' });
     }
 }

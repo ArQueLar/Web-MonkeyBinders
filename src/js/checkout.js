@@ -3,7 +3,7 @@
    elección de método de envío (con mapa de puntos de recogida) y pago.
    ========================================================================== */
 
-import { getImgPath } from './utils.js';
+import { getImgPath, escapeHtml } from './utils.js';
 import { checkSession } from './auth.js';
 import { showToast } from './toast.js';
 
@@ -49,8 +49,8 @@ function renderCheckout(container, cart, session) {
             <div>
                 <h2 style="font-size:16px; margin-bottom:14px;">TUS DATOS</h2>
                 <form id="checkout-form" style="display:flex; flex-direction:column; gap:12px; margin-bottom:32px;">
-                    <input type="text" name="name" placeholder="Nombre completo" class="form-input" value="${user?.name || ''}" required>
-                    <input type="email" name="email" placeholder="Correo electrónico" class="form-input" value="${user?.email || ''}" required>
+                    <input type="text" name="name" placeholder="Nombre completo" class="form-input" value="${escapeHtml(user?.name || '')}" required>
+                    <input type="email" name="email" placeholder="Correo electrónico" class="form-input" value="${escapeHtml(user?.email || '')}" required>
                     <input type="tel" name="phone" placeholder="Teléfono" class="form-input" required>
 
                     <h2 style="font-size:16px; margin:18px 0 4px;">MÉTODO DE ENVÍO</h2>
@@ -97,7 +97,7 @@ function renderCheckout(container, cart, session) {
                         <div style="display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color);">
                             <img src="${getImgPath(i.product.frontImg)}" style="width:44px; height:44px; object-fit:contain;">
                             <div style="flex:1;">
-                                <div style="font-size:12.5px; font-weight:700;">${i.product.name}</div>
+                                <div style="font-size:12.5px; font-weight:700;">${escapeHtml(i.product.name)}</div>
                                 <div style="font-size:11px; color:var(--text-muted);">Cantidad: ${i.quantity}</div>
                             </div>
                             <div style="font-size:12.5px; font-weight:800; color:var(--accent-jungle);">${(i.product.price * i.quantity).toFixed(2)} €</div>
@@ -177,7 +177,7 @@ function renderCheckout(container, cart, session) {
             selectedServicePoint = { ...servicePoint, postNumber };
             const infoEl = document.getElementById('spp-selected-info');
             if (infoEl) {
-                infoEl.innerHTML = `✓ <strong>${servicePoint.name}</strong> — ${servicePoint.street} ${servicePoint.house_number || ''}, ${servicePoint.city}`;
+                infoEl.innerHTML = `✓ <strong>${escapeHtml(servicePoint.name)}</strong> — ${escapeHtml(servicePoint.street)} ${escapeHtml(servicePoint.house_number || '')}, ${escapeHtml(servicePoint.city)}`;
             }
         }, (errors) => {
             console.error('Selector de puntos de recogida:', errors);

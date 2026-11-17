@@ -6,18 +6,20 @@
 // concreto". Resend tiene un plan gratuito de sobra (3.000 emails/mes) y una
 // API muy simple, sin necesidad de librerías (una sola llamada fetch).
 
+const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 function buildOrderConfirmationHtml({ customerName, orderName, items, subtotal, shippingCost, total }) {
     const itemsRows = items.map(i => `
         <tr>
-            <td style="padding:10px 0; border-bottom:1px solid #eee; color:#333;">${i.name} × ${i.quantity}</td>
+            <td style="padding:10px 0; border-bottom:1px solid #eee; color:#333;">${esc(i.name)} × ${esc(i.quantity)}</td>
             <td style="padding:10px 0; border-bottom:1px solid #eee; text-align:right; color:#333;">${(i.price * i.quantity).toFixed(2)} €</td>
         </tr>
     `).join('');
 
     return `
     <div style="font-family: -apple-system, Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #333;">
-        <h1 style="color: #2f5233; font-size: 22px;">¡Gracias por tu compra, ${customerName}!</h1>
-        <p>Hemos recibido tu pedido <strong>${orderName}</strong> y ya lo estamos preparando. Te avisaremos en cuanto salga hacia tu dirección.</p>
+        <h1 style="color: #2f5233; font-size: 22px;">¡Gracias por tu compra, ${esc(customerName)}!</h1>
+        <p>Hemos recibido tu pedido <strong>${esc(orderName)}</strong> y ya lo estamos preparando. Te avisaremos en cuanto salga hacia tu dirección.</p>
 
         <table style="width:100%; border-collapse:collapse; margin: 24px 0;">
             ${itemsRows}

@@ -213,7 +213,7 @@ function renderProductionTab(tab, orders) {
         <div style="border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:16px; margin-bottom:14px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
                 <div>
-                    <div style="font-weight:800; font-size:14px;">${o.name} — ${o.customer}</div>
+                    <div style="font-weight:800; font-size:14px;">${escapeHtml(o.name)} — ${escapeHtml(o.customer)}</div>
                     <div style="font-size:12px; color:var(--text-muted);">${new Date(o.date_order).toLocaleDateString('es-ES')}</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:${shippingInfo.color};">
@@ -222,12 +222,12 @@ function renderProductionTab(tab, orders) {
                 </div>
             </div>
             <ul style="margin:10px 0 0 0; padding-left:18px; font-size:13px; color:var(--text-secondary);">
-                ${o.lines.map(l => `<li>${l.qty} × ${l.name}</li>`).join('')}
+                ${o.lines.map(l => `<li>${escapeHtml(l.qty)} × ${escapeHtml(l.name)}</li>`).join('')}
             </ul>
 
             ${o.trackingNumber ? `
             <div style="margin-top:10px; font-size:12px; color:var(--text-secondary);">
-                📦 Seguimiento Sendcloud: <strong>${o.trackingNumber}</strong>
+                📦 Seguimiento Sendcloud: <strong>${escapeHtml(o.trackingNumber)}</strong>
             </div>
             ` : ''}
 
@@ -237,8 +237,8 @@ function renderProductionTab(tab, orders) {
                     ${o.shippingState !== 'done' ? `<button class="btn-primary admin-ship-btn" data-picking="${o.pickingId}" data-action="deliver" style="padding:6px 14px; font-size:11px;">MARCAR ENTREGADO</button>` : ''}
                 ` : `<div style="font-size:11px; color:var(--text-muted);">Este pedido no tiene todavía una transferencia de envío en Odoo.</div>`}
 
-                ${!o.trackingNumber ? `<button class="btn-secondary admin-open-label-btn" data-order="${o.id}" data-suggested-weight="${o.suggestedWeightKg}" style="padding:6px 14px; font-size:11px;">📦 CREAR ETIQUETA DE ENVÍO</button>` : ''}
-                ${o.trackingNumber ? `<button class="btn-secondary admin-track-btn" data-tracking="${o.trackingNumber}" style="padding:6px 14px; font-size:11px;">🔎 VER ESTADO REAL</button>` : ''}
+                ${!o.trackingNumber ? `<button class="btn-secondary admin-open-label-btn" data-order="${o.id}" data-suggested-weight="${escapeHtml(o.suggestedWeightKg)}" style="padding:6px 14px; font-size:11px;">📦 CREAR ETIQUETA DE ENVÍO</button>` : ''}
+                ${o.trackingNumber ? `<button class="btn-secondary admin-track-btn" data-tracking="${escapeHtml(o.trackingNumber)}" style="padding:6px 14px; font-size:11px;">🔎 VER ESTADO REAL</button>` : ''}
             </div>
             <div class="admin-label-form" data-order="${o.id}" style="margin-top:10px; display:none;"></div>
             <div class="admin-track-result" data-order="${o.id}" style="margin-top:8px; font-size:12px; display:none;"></div>
@@ -282,8 +282,8 @@ function renderOrdersTab(tab, orders) {
                     return `
                     <tr class="order-row-toggle" data-order="${o.id}" style="border-bottom:1px solid var(--border-color); cursor:pointer;">
                         <td style="padding:10px 8px; color:var(--text-muted); width:20px;" class="order-row-arrow">▸</td>
-                        <td style="padding:10px 8px; font-weight:700;">${o.name}</td>
-                        <td style="padding:10px 8px;">${o.customer}</td>
+                        <td style="padding:10px 8px; font-weight:700;">${escapeHtml(o.name)}</td>
+                        <td style="padding:10px 8px;">${escapeHtml(o.customer)}</td>
                         <td style="padding:10px 8px; color:var(--text-muted);">${new Date(o.date_order).toLocaleDateString('es-ES')}</td>
                         <td style="padding:10px 8px; color:${shippingInfo.color}; font-weight:700;">${shippingInfo.label}</td>
                         <td style="padding:10px 8px; text-align:right; font-weight:800; color:var(--accent-jungle);">${o.amount_total.toFixed(2)} €</td>
@@ -292,7 +292,7 @@ function renderOrdersTab(tab, orders) {
                         <td></td>
                         <td colspan="5" style="padding:10px 8px 16px 8px;">
                             <ul style="margin:0; padding-left:18px; color:var(--text-secondary);">
-                                ${o.lines.map(l => `<li>${l.qty} × ${l.name}</li>`).join('')}
+                                ${o.lines.map(l => `<li>${escapeHtml(l.qty)} × ${escapeHtml(l.name)}</li>`).join('')}
                             </ul>
                         </td>
                     </tr>
@@ -356,7 +356,7 @@ async function openLabelForm(btn) {
                 <div>
                     <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:4px;">SERVICIO DE ENVÍO</label>
                     <select class="form-input label-service-select" style="min-width:260px;">
-                        ${result.services.map(s => `<option value="${s.key}">${s.label}</option>`).join('')}
+                        ${result.services.map(s => `<option value="${escapeHtml(s.key)}">${escapeHtml(s.label)}</option>`).join('')}
                     </select>
                 </div>
                 <div>
@@ -401,7 +401,7 @@ async function handleLabelContinue(form, orderId, services) {
         const result = await r.json();
 
         if (!result.success) {
-            pickerBox.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">⚠ ${result.error || 'No se pudieron buscar puntos de recogida'}</p>`;
+            pickerBox.innerHTML = `<p style="font-size:12px; color:var(--accent-error);">⚠ ${escapeHtml(result.error || 'No se pudieron buscar puntos de recogida')}</p>`;
             continueBtn.disabled = false;
             return;
         }
@@ -413,7 +413,7 @@ async function handleLabelContinue(form, orderId, services) {
 
         pickerBox.innerHTML = `
             <select class="form-input pickup-select" style="margin-bottom:8px; min-width:280px;">
-                ${result.points.map(p => `<option value="${p.id}">${p.name} — ${p.street} ${p.houseNumber || ''}, ${p.city}</option>`).join('')}
+                ${result.points.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)} — ${escapeHtml(p.street)} ${escapeHtml(p.houseNumber || '')}, ${escapeHtml(p.city)}</option>`).join('')}
             </select>
             <button class="btn-primary pickup-confirm-btn" style="padding:6px 14px; font-size:11px;">CONFIRMAR Y CREAR ETIQUETA</button>
         `;
@@ -479,8 +479,8 @@ async function checkTracking(btn) {
         if (resultBox) {
             resultBox.style.display = 'block';
             if (result.success) {
-                resultBox.innerHTML = `Estado real del transportista: <strong>${result.status}</strong>` +
-                    (result.trackingUrl ? ` — <a href="${result.trackingUrl}" target="_blank" style="color:var(--accent-jungle);">ver seguimiento completo</a>` : '');
+                resultBox.innerHTML = `Estado real del transportista: <strong>${escapeHtml(result.status)}</strong>` +
+                    (result.trackingUrl ? ` — <a href="${escapeHtml(safeUrl(result.trackingUrl))}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-jungle);">ver seguimiento completo</a>` : '');
             } else {
                 resultBox.textContent = `⚠ ${result.error || 'No se pudo consultar Sendcloud'}`;
             }

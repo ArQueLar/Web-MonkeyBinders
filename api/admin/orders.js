@@ -154,23 +154,20 @@ export default async function handler(req, res) {
     // --- GET con ?downloadLabel=... : proxy autenticado del PDF de la etiqueta ---
     if (req.method === 'GET' && req.query.downloadLabel) {
         try {
-            const pdfBuffer = await downloadSendcloudLabel(decodeURIComponent(req.query.downloadLabel));
+            // Solo descargamos etiquetas de Sendcloud: sin esta comprobación, el servidor haría
+            // peticiones (con nuestras credenciales) a cualquier URL que se le indicara.
+            let labelUrl;
+            try { labelUrl = new URL(String(req.query.downloadLabel)); } catch { labelUrl = null; }
+            if (!labelUrl || labelUrl.protocol !== 'https:' || !/(^|\.)sendcloud\.sc$/i.test(labelUrl.hostname)) {
+                return res.status(400).json({ success: false, error: 'URL de etiqueta no válida' });
+            }
+            const pdfBuffer = await downloadSendcloudLabel(labelUrl.toString());
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'inline; filename="etiqueta-envio.pdf"');
             return res.status(200).send(pdfBuffer);
         } catch (err) {
-            return res.status(500).json({ success: false, error: 'No se pudo descargar la etiqueta', detail: err.message });
-        }
-    }
-
-    // --- GET con ?listShippingMethods=1 : consulta puntual para saber el ID a
-    // poner en SENDCLOUD_SHIPPING_METHOD_ID (quítalo cuando ya lo tengas configurado) ---
-    if (req.method === 'GET' && req.query.listShippingMethods) {
-        try {
-            const methods = await listSendcloudShippingMethods();
-            return res.status(200).json({ success: true, methods });
-        } catch (err) {
-            return res.status(500).json({ success: false, error: 'No se pudo consultar Sendcloud', detail: err.message });
+            console.error('downloadLabel:', err.message);
+            return res.status(500).json({ success: false, error: 'No se pudo descargar la etiqueta' });
         }
     }
 
@@ -368,7 +365,8 @@ export default async function handler(req, res) {
 
             return res.status(400).json({ success: false, error: 'Acción no reconocida' });
         } catch (err) {
-            return res.status(500).json({ success: false, error: 'No se pudo completar la acción', detail: err.message });
+            console.error('admin/orders:', err.message);
+            return res.status(500).json({ success: false, error: 'No se pudo completar la acción' });
         }
     }
 

@@ -12,9 +12,15 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Método no permitido' });
     }
 
-    const { name, email, password } = req.body || {};
+    const body = req.body || {};
+    const name = typeof body.name === 'string' ? body.name.trim().slice(0, 120) : '';
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase().slice(0, 254) : '';
+    const password = typeof body.password === 'string' ? body.password : '';
     if (!name || !email || !password) {
         return res.status(400).json({ success: false, error: 'Faltan datos (nombre, email o contraseña)' });
+    }
+    if (!/^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(email) || password.length > 200) {
+        return res.status(400).json({ success: false, error: 'Email o contraseña no válidos' });
     }
 
     // Misma regla que en el formulario: mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.
@@ -94,6 +100,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ success: true, user: { name, email } });
     } catch (err) {
-        return res.status(500).json({ success: false, error: 'Error al crear la cuenta en Odoo', detail: err.message });
+        console.error('register:', err.message);
+        return res.status(500).json({ success: false, error: 'No se pudo crear la cuenta. Inténtalo de nuevo más tarde.' });
     }
 }

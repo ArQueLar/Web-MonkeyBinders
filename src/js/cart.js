@@ -48,7 +48,7 @@ function updateCartUI() {
                 <div class="cart-item">
                     <img src="${getImgPath(item.product.frontImg)}" class="cart-item-img">
                     <div class="cart-item-info">
-                        <div class="cart-item-name">${item.product.name}</div>
+                        <div class="cart-item-name">${escapeHtml(item.product.name)}</div>
                         <div class="cart-item-price">${item.product.price.toFixed(2)} €</div>
                         <div class="cart-item-qty">
                             <button class="qty-btn" onclick="updateQty('${item.product.id}', -1)">-</button>
