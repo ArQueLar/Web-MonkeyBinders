@@ -21,7 +21,8 @@ export default defineConfig({
         terminosCondiciones: resolve(__dirname, 'terminos-condiciones.html'),
         politicaPrivacidad: resolve(__dirname, 'politica-privacidad.html'),
         politicaDevoluciones: resolve(__dirname, 'politica-devoluciones.html'),
-        politicaEnvios: resolve(__dirname, 'politica-envios.html')
+        politicaEnvios: resolve(__dirname, 'politica-envios.html'),
+        politicaCookies: resolve(__dirname, 'politica-cookies.html')
       }
     }
   },
