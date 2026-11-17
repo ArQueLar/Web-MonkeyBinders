@@ -129,7 +129,13 @@ export function renderAuthForm(container, mode, onSuccess) {
             });
             const result = await response.json();
 
-            if (result.success) {
+            if (result.success && result.pendingVerification) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:20px 10px;">
+                        <h2 class="section-title" style="font-size:20px; margin-bottom:12px;">REVISA TU CORREO</h2>
+                        <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.6;">Te hemos enviado un enlace para activar tu cuenta. Caduca en 24 horas. Si no lo ves, mira en spam.</p>
+                    </div>`;
+            } else if (result.success) {
                 onSuccess(result.user);
             } else {
                 errorEl.textContent = result.error || 'Ha ocurrido un error. Inténtalo de nuevo.';

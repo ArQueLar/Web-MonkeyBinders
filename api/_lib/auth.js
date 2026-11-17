@@ -72,7 +72,9 @@ function appendSetCookie(res, cookieString) {
 }
 
 export function getSessionFromRequest(req) {
-    return verifySession(getCookie(req, COOKIE_NAME));
+    const session = verifySession(getCookie(req, COOKIE_NAME));
+    // Los tokens de un solo uso (verificación de email) nunca valen como sesión
+    return session && !session.purpose ? session : null;
 }
 
 export function setSessionCookie(res, token) {

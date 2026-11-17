@@ -79,3 +79,41 @@ export async function sendOrderConfirmationEmail({ to, customerName, orderName, 
         return { success: false, error: err.message };
     }
 }
+
+
+// Email con el enlace para activar la cuenta. Devuelve { success } igual que el de pedidos.
+export async function sendVerificationEmail({ to, name, link }) {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) {
+        console.error('Falta RESEND_API_KEY: no se puede enviar el email de verificación');
+        return { success: false, error: 'Falta RESEND_API_KEY' };
+    }
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: process.env.RESEND_FROM_EMAIL || 'Monkey Binders <onboarding@resend.dev>',
+                to: [to],
+                reply_to: 'monkeybinders@gmail.com',
+                subject: 'Confirma tu cuenta — Monkey Binders',
+                html: `
+                <div style="font-family: -apple-system, Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #333;">
+                    <h1 style="color: #2f5233; font-size: 22px;">Hola, ${esc(name)}</h1>
+                    <p>Para activar tu cuenta en Monkey Binders pulsa el botón. El enlace caduca en 24 horas.</p>
+                    <p style="margin:28px 0;"><a href="${esc(link)}" style="background:#2f5233; color:#fff; padding:12px 22px; border-radius:6px; text-decoration:none; font-weight:bold;">Activar mi cuenta</a></p>
+                    <p style="color:#888; font-size:12px;">Si no has creado tú esta cuenta, ignora este mensaje: no se activará.</p>
+                </div>`
+            })
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+            console.error('Resend rechazó el email de verificación:', data);
+            return { success: false, error: data?.message || `Resend devolvió un error (${response.status})` };
+        }
+        return { success: true };
+    } catch (err) {
+        console.error('Error enviando el email de verificación:', err.message);
+        return { success: false, error: err.message };
+    }
+}

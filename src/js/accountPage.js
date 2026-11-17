@@ -34,6 +34,17 @@ export async function initAccountPage() {
 
     const session = await checkSession();
 
+    // Resultado del enlace de verificación de email (/api/register?verify=...)
+    const verification = new URLSearchParams(location.search).get('verificacion');
+    if (verification) {
+        const messages = {
+            ok: '✓ Cuenta activada. ¡Bienvenido!',
+            caducada: '⚠ El enlace ha caducado. Regístrate de nuevo para recibir otro.',
+            error: '⚠ No se pudo activar la cuenta. Inténtalo de nuevo.'
+        };
+        if (messages[verification]) showToast(messages[verification]);
+    }
+
     if (session.loggedIn) {
         renderDashboard(container, session.user);
     } else {

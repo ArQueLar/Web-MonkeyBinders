@@ -6,6 +6,7 @@
 //   POST   -> inicia sesión, body: { email, password } (antes era api/login.js)
 //   DELETE -> cierra sesión (antes era api/logout.js)
 
+import { isBlocked, hit, clear, clientIp, tooMany } from './_lib/ratelimit.js';
 import { callOdoo, signSession, setSessionCookie, clearSessionCookie, getSessionFromRequest, setAdminSessionCookie } from './_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -23,10 +24,19 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const { email, password } = req.body || {};
+        const body = req.body || {};
+        const email = typeof body.email === 'string' ? body.email.trim().toLowerCase().slice(0, 254) : '';
+        const password = typeof body.password === 'string' ? body.password.slice(0, 200) : '';
         if (!email || !password) {
             return res.status(400).json({ success: false, error: 'Falta email o contraseña' });
         }
+
+        // Límite de intentos fallidos: por email (8) y por IP (20) cada 15 minutos
+        const WINDOW = 15 * 60 * 1000;
+        const ipKey = `login-ip:${clientIp(req)}`;
+        const mailKey = `login-mail:${email}`;
+        const blocked = isBlocked(mailKey, 8).blocked ? isBlocked(mailKey, 8) : isBlocked(ipKey, 20);
+        if (blocked.blocked) return tooMany(res, blocked.retryAfterSec);
 
         const ODOO_URL = process.env.ODOO_URL;
         const ODOO_DB = process.env.ODOO_DB;
@@ -40,8 +50,11 @@ export default async function handler(req, res) {
             // entrara por su propio portal — no reimplementamos ninguna lógica de contraseñas.
             const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, email, password, {}]);
             if (!uid) {
+                hit(mailKey, WINDOW);
+                hit(ipKey, WINDOW);
                 return res.status(401).json({ success: false, error: 'Email o contraseña incorrectos' });
             }
+            clear(mailKey);
 
             const userData = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
                 ODOO_DB, uid, password,

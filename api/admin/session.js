@@ -8,6 +8,7 @@
 // Solo deja entrar (POST) a usuarios de Odoo con permiso de Administración →
 // "Ajustes" (base.group_system), sean quienes sean.
 
+import { isBlocked, hit, clear, clientIp, tooMany } from '../_lib/ratelimit.js';
 import { callOdoo, signSession, setAdminSessionCookie, clearAdminSessionCookie, getAdminSessionFromRequest } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -22,10 +23,19 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const { email, password } = req.body || {};
+        const body = req.body || {};
+        const email = typeof body.email === 'string' ? body.email.trim().toLowerCase().slice(0, 254) : '';
+        const password = typeof body.password === 'string' ? body.password.slice(0, 200) : '';
         if (!email || !password) {
             return res.status(400).json({ success: false, error: 'Falta email o contraseña' });
         }
+
+        // Más estricto que el de clientes: 5 fallos por email o 10 por IP cada 15 minutos
+        const WINDOW = 15 * 60 * 1000;
+        const ipKey = `admin-ip:${clientIp(req)}`;
+        const mailKey = `admin-mail:${email}`;
+        const blocked = isBlocked(mailKey, 5).blocked ? isBlocked(mailKey, 5) : isBlocked(ipKey, 10);
+        if (blocked.blocked) return tooMany(res, blocked.retryAfterSec);
 
         const ODOO_URL = process.env.ODOO_URL;
         const ODOO_DB = process.env.ODOO_DB;
@@ -37,6 +47,8 @@ export default async function handler(req, res) {
         try {
             const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, email, password, {}]);
             if (!uid) {
+                hit(mailKey, WINDOW);
+                hit(ipKey, WINDOW);
                 return res.status(401).json({ success: false, error: 'Email o contraseña incorrectos' });
             }
 
@@ -47,9 +59,12 @@ export default async function handler(req, res) {
             ]);
 
             if (!isAdmin) {
+                hit(mailKey, WINDOW);
+                hit(ipKey, WINDOW);
                 return res.status(401).json({ success: false, error: 'Email o contraseña incorrectos' });
             }
 
+            clear(mailKey);
             const token = signSession({ role: 'admin', uid, email });
             setAdminSessionCookie(res, token);
 

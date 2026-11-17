@@ -5,12 +5,29 @@
 // usuario hay que darle permiso de Administración ("Ajustes") en Odoo, para que
 // pueda crear usuarios además de solo leer productos.
 
-import { callOdoo, signSession, setSessionCookie } from './_lib/auth.js';
+import { callOdoo, signSession, verifySession, setSessionCookie } from './_lib/auth.js';
+import { isBlocked, hit, clientIp, tooMany } from './_lib/ratelimit.js';
+import { sendVerificationEmail } from './_lib/email.js';
+
+// Si REQUIRE_EMAIL_VERIFICATION=true en Vercel, la cuenta se crea desactivada y solo
+// se activa al pulsar el enlace que llega por email. Requiere que el envío por Resend
+// funcione con clientes reales (dominio verificado en RESEND_FROM_EMAIL).
+const VERIFY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 export default async function handler(req, res) {
+    if (req.method === 'GET' && req.query.verify) {
+        return handleVerify(req, res);
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, error: 'Método no permitido' });
     }
+
+    // Límite de registros: 10 por hora y por IP
+    const regKey = `register-ip:${clientIp(req)}`;
+    const regBlock = isBlocked(regKey, 10);
+    if (regBlock.blocked) return tooMany(res, regBlock.retryAfterSec);
+    hit(regKey, 60 * 60 * 1000);
 
     const body = req.body || {};
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, 120) : '';
@@ -55,9 +72,11 @@ export default async function handler(req, res) {
             ODOO_DB, uid, ODOO_API_KEY,
             'res.users', 'search_read',
             [[['login', '=', email]]],
-            { fields: ['id'] }
+            { fields: ['id', 'active'], context: { active_test: false } }
         ]);
-        if (existing.length > 0) {
+        const requireVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && Boolean(process.env.SITE_URL);
+        const pending = existing.find(u => u.active === false);
+        if (existing.length > 0 && !(requireVerification && pending)) {
             return res.status(409).json({ success: false, error: 'Ya existe una cuenta con ese email' });
         }
 
@@ -73,6 +92,26 @@ export default async function handler(req, res) {
         }
         const portalGroupId = portalGroupRef[0].res_id;
 
+        // Cuenta pendiente de verificar que se vuelve a registrar: actualizamos nombre y
+        // contraseña con los últimos datos enviados y reenviamos el enlace.
+        if (requireVerification && pending) {
+            await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+                ODOO_DB, uid, ODOO_API_KEY,
+                'res.users', 'write',
+                [[pending.id], { name, password }],
+                { context: { active_test: false } }
+            ]);
+            await sendLink(pending.id);
+            return res.status(200).json({ success: true, pendingVerification: true });
+        }
+
+        async function sendLink(userId) {
+            const token = signSession({ purpose: 'verify', uid: userId, email });
+            const link = `${process.env.SITE_URL}/api/register?verify=${encodeURIComponent(token)}`;
+            const result = await sendVerificationEmail({ to: email, name, link });
+            if (!result.success) throw new Error(`No se pudo enviar el email de verificación: ${result.error}`);
+        }
+
         // Creamos el usuario de portal
         const newUserId = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
             ODOO_DB, uid, ODOO_API_KEY,
@@ -82,9 +121,15 @@ export default async function handler(req, res) {
                 login: email,
                 email,
                 password,
+                active: !requireVerification,
                 group_ids: [[6, 0, [portalGroupId]]] // en Odoo 19 se llama "group_ids" (antes "groups_id")
             }]
         ]);
+
+        if (requireVerification) {
+            await sendLink(newUserId);
+            return res.status(200).json({ success: true, pendingVerification: true });
+        }
 
         const partnerData = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
             ODOO_DB, uid, ODOO_API_KEY,
@@ -102,5 +147,39 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error('register:', err.message);
         return res.status(500).json({ success: false, error: 'No se pudo crear la cuenta. Inténtalo de nuevo más tarde.' });
+    }
+}
+
+
+// GET /api/register?verify=TOKEN — activa la cuenta, abre sesión y manda a "Mi cuenta"
+async function handleVerify(req, res) {
+    const payload = verifySession(String(req.query.verify));
+    if (!payload || payload.purpose !== 'verify' || Date.now() - payload.iat > VERIFY_MAX_AGE_MS) {
+        res.setHeader('Location', '/cuenta.html?verificacion=caducada');
+        return res.status(302).end();
+    }
+    const ODOO_URL = process.env.ODOO_URL;
+    const ODOO_DB = process.env.ODOO_DB;
+    const ODOO_LOGIN = process.env.ODOO_LOGIN;
+    const ODOO_API_KEY = process.env.ODOO_API_KEY;
+    try {
+        const uid = await callOdoo(ODOO_URL, 'common', 'authenticate', [ODOO_DB, ODOO_LOGIN, ODOO_API_KEY, {}]);
+        const ctx = { context: { active_test: false } };
+        const users = await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+            ODOO_DB, uid, ODOO_API_KEY, 'res.users', 'read', [[payload.uid]],
+            { fields: ['name', 'login', 'partner_id'], ...ctx }
+        ]);
+        if (!users.length || users[0].login !== payload.email) throw new Error('Usuario no coincide');
+        await callOdoo(ODOO_URL, 'object', 'execute_kw', [
+            ODOO_DB, uid, ODOO_API_KEY, 'res.users', 'write', [[payload.uid], { active: true }], ctx
+        ]);
+        const partnerId = Array.isArray(users[0].partner_id) ? users[0].partner_id[0] : users[0].partner_id;
+        setSessionCookie(res, signSession({ uid: payload.uid, email: payload.email, name: users[0].name, partnerId }));
+        res.setHeader('Location', '/cuenta.html?verificacion=ok');
+        return res.status(302).end();
+    } catch (err) {
+        console.error('verify:', err.message);
+        res.setHeader('Location', '/cuenta.html?verificacion=error');
+        return res.status(302).end();
     }
 }
