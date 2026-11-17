@@ -20,7 +20,8 @@ export default defineConfig({
         avisoLegal: resolve(__dirname, 'aviso-legal.html'),
         terminosCondiciones: resolve(__dirname, 'terminos-condiciones.html'),
         politicaPrivacidad: resolve(__dirname, 'politica-privacidad.html'),
-        politicaDevoluciones: resolve(__dirname, 'politica-devoluciones.html')
+        politicaDevoluciones: resolve(__dirname, 'politica-devoluciones.html'),
+        politicaEnvios: resolve(__dirname, 'politica-envios.html')
       }
     }
   },
