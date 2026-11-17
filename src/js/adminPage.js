@@ -4,6 +4,7 @@
    ========================================================================== */
 
 import { showToast } from './toast.js';
+import { escapeHtml, safeUrl } from './utils.js';
 
 const SHIPPING_STATE_INFO = {
     draft: { label: 'Sin preparar', color: 'var(--text-muted)' },

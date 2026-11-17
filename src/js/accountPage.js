@@ -5,6 +5,7 @@
 
 import { checkSession, renderAuthForm, isPasswordStrongEnough, updatePasswordStrengthUI } from './auth.js';
 import { showToast } from './toast.js';
+import { escapeHtml } from './utils.js';
 
 const ORDER_STATE_LABELS = {
     draft: 'Presupuesto',

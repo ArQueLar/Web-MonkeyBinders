@@ -2,7 +2,7 @@
    CART — estado del carrito, panel deslizable y persistencia en localStorage
    ========================================================================== */
 
-import { getImgPath } from './utils.js';
+import { getImgPath, escapeHtml } from './utils.js';
 import { showToast } from './toast.js';
 
 // --- PERSISTENCIA DEL CARRITO ---
