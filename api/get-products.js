@@ -224,15 +224,29 @@ export default async function handler(req, res) {
             };
         });
 
-        // --- MÁS VENDIDOS + MÁS RECIENTES (sección de inicio) ---
-        // Siempre intenta completar TOTAL_HOME_COUNT productos: primero los más vendidos según
-        // ventas reales en Odoo (hasta BEST_SELLERS_COUNT), y con los huecos que queden libres,
-        // los productos más recientes — así, si hay pocas ventas registradas, el hueco lo cubren
-        // más "NUEVO" en vez de quedarse corto o mostrar algo sin sello.
-        const TOTAL_HOME_COUNT = 4;
+        // --- NUEVOS + MÁS VENDIDOS (inicio y carrusel del banner) ---
+        // NUEVO: productos publicados creados en los últimos NEW_DAYS días (máx. MAX_NEW, los
+        // más recientes primero). MÁS VENDIDO: los de más ventas reales en Odoo (máx. BEST_SELLERS_COUNT),
+        // sin repetir los que ya son NUEVO. Un producto solo lleva una etiqueta (NUEVO manda).
+        // La sección destacada del inicio intenta llegar a TOTAL_HOME_COUNT: si faltan, se rellena
+        // con los más recientes aunque ya no sean "nuevos" (sin etiqueta).
+        const NEW_DAYS = 30;
+        const MAX_NEW = 3;
         const BEST_SELLERS_COUNT = 3;
-        let topSellerTmplIds = [];
+        const TOTAL_HOME_COUNT = 4;
+        const odooDate = d => new Date(String(d || '').replace(' ', 'T') + 'Z').getTime();
+        const tmplIdOf = prod => Number(String(prod.id).replace('odoo-', ''));
+        const cutoff = Date.now() - NEW_DAYS * 24 * 60 * 60 * 1000;
 
+        const byNewest = rawProducts
+            .filter(p => p.id !== 45)
+            .sort((x, y) => odooDate(y.create_date) - odooDate(x.create_date));
+        const newTmplIds = byNewest
+            .filter(p => odooDate(p.create_date) >= cutoff)
+            .slice(0, MAX_NEW)
+            .map(p => p.id);
+
+        let topSellerTmplIds = [];
         if (variants.length > 0) {
             const tmplIdByVariantId = {};
             variants.forEach(v => {
@@ -248,40 +262,32 @@ export default async function handler(req, res) {
             });
 
             topSellerTmplIds = Object.entries(soldQtyByTmplId)
-                .filter(([tmplId]) => Number(tmplId) !== 45) // nunca el "envío personalizado"
+                .filter(([tmplId]) => Number(tmplId) !== 45 && !newTmplIds.includes(Number(tmplId)))
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, BEST_SELLERS_COUNT)
                 .map(([tmplId]) => Number(tmplId));
-
-            products.forEach(prod => {
-                const tmplId = Number(String(prod.id).replace('odoo-', ''));
-                if (topSellerTmplIds.includes(tmplId)) {
-                    prod.featured = true;
-                    prod.badge = 'MÁS VENDIDO';
-                }
-            });
         }
 
-        // Rellena TODOS los huecos que queden libres (no solo 2 fijos) con los productos más
-        // recientes, para llegar a TOTAL_HOME_COUNT siempre que haya suficientes productos
-        // publicados en Odoo. Ojo: usamos cuántos "más vendidos" se marcaron REALMENTE en
-        // products (no topSellerTmplIds.length) — si alguno de los más vendidos ya no está
-        // publicado en la web, no cuenta como hueco ocupado, y aquí se rellena igualmente.
-        const matchedBestSellersCount = products.filter(p => p.badge === 'MÁS VENDIDO').length;
-        const remainingSlots = TOTAL_HOME_COUNT - matchedBestSellersCount;
-        if (remainingSlots > 0) {
-            const newestCandidates = rawProducts
-                .filter(p => p.id !== 45 && !topSellerTmplIds.includes(p.id))
-                .sort((a, b) => new Date(b.create_date) - new Date(a.create_date))
-                .slice(0, remainingSlots)
-                .map(p => p.id);
+        products.forEach(prod => {
+            const tmplId = tmplIdOf(prod);
+            if (newTmplIds.includes(tmplId)) {
+                prod.featured = true;
+                prod.badge = 'NUEVO';
+            } else if (topSellerTmplIds.includes(tmplId)) {
+                prod.featured = true;
+                prod.badge = 'MÁS VENDIDO';
+            }
+        });
 
+        // Relleno del inicio con los más recientes (sin etiqueta) si no se llega a TOTAL_HOME_COUNT
+        const missing = TOTAL_HOME_COUNT - products.filter(p => p.featured).length;
+        if (missing > 0) {
+            const fillIds = byNewest
+                .filter(p => !newTmplIds.includes(p.id) && !topSellerTmplIds.includes(p.id))
+                .slice(0, missing)
+                .map(p => p.id);
             products.forEach(prod => {
-                const tmplId = Number(String(prod.id).replace('odoo-', ''));
-                if (newestCandidates.includes(tmplId)) {
-                    prod.featured = true;
-                    prod.badge = 'NUEVO';
-                }
+                if (fillIds.includes(tmplIdOf(prod))) prod.featured = true;
             });
         }
 

@@ -10,7 +10,7 @@ import { escapeHtml, safeUrl } from './utils.js';
 
 const SESSION_CACHE_KEY = 'mb_odoo_products_cache';
 const AUTOPLAY_MS = 6500;
-const MAX_NEW = 2;
+const MAX_NEW = 3;
 const MAX_BEST = 2;
 
 async function loadProducts() {
