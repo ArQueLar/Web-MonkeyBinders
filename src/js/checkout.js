@@ -72,7 +72,8 @@ function renderCheckout(container, cart, session) {
                     <input type="tel" id="co-phone" placeholder="Teléfono" autocomplete="tel" class="form-input" required maxlength="30">
 
                     <h3 style="font-size:13px; margin:14px 0 0; color:var(--text-secondary);">DIRECCIÓN DE FACTURACIÓN</h3>
-                    <input type="text" id="co-b-street" placeholder="Calle y número" autocomplete="street-address" class="form-input" required maxlength="200">
+                    <input type="text" id="co-b-street" placeholder="Calle y número" autocomplete="address-line1" class="form-input" required maxlength="150">
+                    <input type="text" id="co-b-street2" placeholder="Piso, puerta, escalera… (opcional)" autocomplete="address-line2" class="form-input" maxlength="80">
                     <div style="display:flex; gap:10px;">
                         <input type="text" id="co-b-postal" placeholder="Código postal" autocomplete="postal-code" class="form-input" required style="flex:1;" maxlength="10">
                         <input type="text" id="co-b-city" placeholder="Ciudad" autocomplete="address-level2" class="form-input" required style="flex:2;" maxlength="100">
@@ -100,7 +101,8 @@ function renderCheckout(container, cart, session) {
                             <span>Enviar a la dirección de facturación</span>
                         </label>
                         <div id="co-ship-fields" style="display:none; flex-direction:column; gap:12px;">
-                            <input type="text" id="co-s-street" placeholder="Calle y número" class="form-input" maxlength="200">
+                            <input type="text" id="co-s-street" placeholder="Calle y número" class="form-input" maxlength="150">
+                            <input type="text" id="co-s-street2" placeholder="Piso, puerta, escalera… (opcional)" class="form-input" maxlength="80">
                             <div style="display:flex; gap:10px;">
                                 <input type="text" id="co-s-postal" placeholder="Código postal" class="form-input" style="flex:1;" maxlength="10">
                                 <input type="text" id="co-s-city" placeholder="Ciudad" class="form-input" style="flex:2;" maxlength="100">
@@ -176,6 +178,8 @@ function renderCheckout(container, cart, session) {
     const val = id => ($(id)?.value || '').trim();
     const deliveryMethod = () => document.querySelector('input[name="co-delivery"]:checked').value;
     const sameAddress = () => $('co-same').checked;
+    // Calle + datos opcionales (piso, puerta...) en una sola línea de dirección
+    const street = (id) => [val(id), val(`${id}2`)].filter(Boolean).join(', ');
 
     // --- Indicador de pasos (clicar un paso ya completado permite volver a él) ---
     function renderStepper() {
@@ -264,12 +268,12 @@ function renderCheckout(container, cart, session) {
     // --- Dirección de envío efectiva (según el método elegido) ---
     function shippingAddress() {
         if (deliveryMethod() === 'pickup') {
-            return { street: val('co-b-street'), city: val('co-b-city'), postalCode: val('co-p-postal'), country: val('co-p-country') || 'ES', phone: val('co-phone') };
+            return { street: street('co-b-street'), city: val('co-b-city'), postalCode: val('co-p-postal'), country: val('co-p-country') || 'ES', phone: val('co-phone') };
         }
         if (sameAddress()) {
-            return { street: val('co-b-street'), city: val('co-b-city'), postalCode: val('co-b-postal'), country: val('co-b-country'), phone: val('co-phone') };
+            return { street: street('co-b-street'), city: val('co-b-city'), postalCode: val('co-b-postal'), country: val('co-b-country'), phone: val('co-phone') };
         }
-        return { street: val('co-s-street'), city: val('co-s-city'), postalCode: val('co-s-postal'), country: val('co-s-country'), phone: val('co-phone') };
+        return { street: street('co-s-street'), city: val('co-s-city'), postalCode: val('co-s-postal'), country: val('co-s-country'), phone: val('co-phone') };
     }
 
     // --- Estimación visual del envío (el importe real lo calcula el servidor) ---
@@ -357,7 +361,7 @@ function renderCheckout(container, cart, session) {
             </div>`;
         $('co-review').innerHTML =
             row('CONTACTO', `${escapeHtml(val('co-name'))}<br>${escapeHtml(val('co-email'))} · ${escapeHtml(val('co-phone'))}`, 1) +
-            row('FACTURACIÓN', `${escapeHtml(val('co-b-street'))}<br>${escapeHtml(val('co-b-postal'))} ${escapeHtml(val('co-b-city'))}, ${escapeHtml(countryName(val('co-b-country')))}`, 1) +
+            row('FACTURACIÓN', `${escapeHtml(street('co-b-street'))}<br>${escapeHtml(val('co-b-postal'))} ${escapeHtml(val('co-b-city'))}, ${escapeHtml(countryName(val('co-b-country')))}`, 1) +
             row('ENVÍO', shipText, 2);
         $('co-review').querySelectorAll('[data-goto-step]').forEach(b => b.addEventListener('click', () => showStep(Number(b.dataset.gotoStep))));
     }
