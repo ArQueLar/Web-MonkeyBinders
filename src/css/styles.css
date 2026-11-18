@@ -2470,3 +2470,132 @@ footer.main-footer {
         grid-template-columns: 1fr !important;
     }
 }
+
+/* ==========================================================================
+   REFINAMIENTO VISUAL — capa final de pulido (no cambia la estructura ni la paleta)
+   ========================================================================== */
+
+/* Selección de texto con la marca */
+::selection {
+    background: rgba(26, 77, 58, 0.18);
+    color: inherit;
+}
+
+/* Foco visible y accesible para teclado (no aparece al hacer clic con ratón) */
+:focus-visible {
+    outline: 2px solid var(--accent-jungle-light);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+.form-input:focus-visible {
+    outline: none;
+}
+
+.form-input:focus {
+    box-shadow: 0 0 0 3px rgba(26, 77, 58, 0.15);
+}
+
+/* Tipografía: títulos equilibrados y párrafos sin líneas huérfanas */
+h1, h2, h3 {
+    text-wrap: balance;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+/* Botones: respuesta táctil al pulsar */
+.btn-primary:active,
+.btn-secondary:active {
+    transform: translateY(0) scale(0.985);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Tarjetas de producto: título que reacciona y miniaturas con fondo mientras cargan */
+.product-title a {
+    transition: color var(--transition-fast);
+}
+
+.product-card:hover .product-title a {
+    color: var(--accent-jungle);
+}
+
+.product-image-wrap {
+    background-image: linear-gradient(135deg, rgba(245, 230, 210, 0.35), rgba(255, 255, 255, 0));
+}
+
+/* Carrito: filas más aireadas y con separación suave */
+.cart-item {
+    transition: background-color var(--transition-fast);
+}
+
+.cart-item:hover {
+    background-color: rgba(26, 77, 58, 0.03);
+}
+
+/* Cabecera en pantallas medianas: evita que el menú se apriete contra los iconos */
+@media (min-width: 993px) and (max-width: 1220px) {
+    .header-container {
+        padding: 12px 20px;
+    }
+
+    .brand-logo img {
+        height: 48px;
+    }
+
+    .nav-menu {
+        gap: 16px;
+    }
+
+    .nav-link {
+        font-size: 12px;
+        letter-spacing: 0.02em;
+    }
+
+    .header-actions {
+        gap: 4px;
+    }
+}
+
+/* Móvil: objetivos táctiles cómodos (mínimo ~44 px) y sin zoom automático en iOS al escribir */
+@media (max-width: 768px) {
+    .icon-btn {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .form-input,
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    input[type="number"],
+    select,
+    textarea {
+        font-size: 16px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        min-height: 44px;
+    }
+}
+
+/* Respeta a quien tiene las animaciones reducidas en su sistema */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
