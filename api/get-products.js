@@ -4,9 +4,21 @@
 // y devuelve los productos ya traducidos al formato que usa la web (mismo shape
 // que el array "products" hardcodeado en app.js).
 
+// Caché en memoria de la instancia: mientras la función siga "caliente", las visitas
+// reciben el catálogo al instante sin volver a preguntarle a Odoo (5 min). Va además de
+// la caché del borde de Vercel (cabecera Cache-Control de más abajo).
+const MEMORY_TTL_MS = 5 * 60 * 1000;
+let memoryCache = { at: 0, body: null };
+
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ success: false, error: 'Método no permitido' });
+    }
+
+    if (memoryCache.body && Date.now() - memoryCache.at < MEMORY_TTL_MS) {
+        res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=7200');
+        res.setHeader('X-Catalog-Cache', 'memory');
+        return res.status(200).json(memoryCache.body);
     }
 
     const ODOO_URL = process.env.ODOO_URL;       // ej: https://midominio.odoo.com (sin barra al final)
@@ -281,7 +293,9 @@ export default async function handler(req, res) {
         // más cercano al usuario, sin tocar Odoo para nada.
         res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=7200');
 
-        return res.status(200).json({ success: true, products });
+        const body = { success: true, products };
+        memoryCache = { at: Date.now(), body };
+        return res.status(200).json(body);
     } catch (err) {
         console.error('get-products:', err.message);
         return res.status(500).json({ success: false, error: 'Error interno del servidor' });
