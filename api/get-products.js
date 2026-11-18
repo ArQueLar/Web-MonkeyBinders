@@ -228,12 +228,10 @@ export default async function handler(req, res) {
         // NUEVO: productos publicados creados en los últimos NEW_DAYS días (máx. MAX_NEW, los
         // más recientes primero). MÁS VENDIDO: los de más ventas reales en Odoo (máx. BEST_SELLERS_COUNT),
         // sin repetir los que ya son NUEVO. Un producto solo lleva una etiqueta (NUEVO manda).
-        // La sección destacada del inicio intenta llegar a TOTAL_HOME_COUNT: si faltan, se rellena
-        // con los más recientes aunque ya no sean "nuevos" (sin etiqueta).
+        // La sección destacada del inicio solo muestra productos con etiqueta (nunca uno sin sello).
         const NEW_DAYS = 30;
         const MAX_NEW = 3;
         const BEST_SELLERS_COUNT = 3;
-        const TOTAL_HOME_COUNT = 4;
         const odooDate = d => new Date(String(d || '').replace(' ', 'T') + 'Z').getTime();
         const tmplIdOf = prod => Number(String(prod.id).replace('odoo-', ''));
         const cutoff = Date.now() - NEW_DAYS * 24 * 60 * 60 * 1000;
@@ -278,18 +276,6 @@ export default async function handler(req, res) {
                 prod.badge = 'MÁS VENDIDO';
             }
         });
-
-        // Relleno del inicio con los más recientes (sin etiqueta) si no se llega a TOTAL_HOME_COUNT
-        const missing = TOTAL_HOME_COUNT - products.filter(p => p.featured).length;
-        if (missing > 0) {
-            const fillIds = byNewest
-                .filter(p => !newTmplIds.includes(p.id) && !topSellerTmplIds.includes(p.id))
-                .slice(0, missing)
-                .map(p => p.id);
-            products.forEach(prod => {
-                if (fillIds.includes(tmplIdOf(prod))) prod.featured = true;
-            });
-        }
 
         // Caché en el borde de Vercel: sirve la misma respuesta hasta 30 min sin volver a
         // preguntarle a Odoo, y sigue sirviendo la versión en caché mientras revalida en
