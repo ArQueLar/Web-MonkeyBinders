@@ -5,6 +5,7 @@
 
 import { showToast } from './toast.js';
 import { escapeHtml, safeUrl } from './utils.js';
+import { initAdminProducts } from './adminProducts.js';
 
 const SHIPPING_STATE_INFO = {
     draft: { label: 'Sin preparar', color: 'var(--text-muted)' },
@@ -92,12 +93,14 @@ function renderDashboard(container) {
             <div style="display:flex; gap:10px;">
                 <button class="btn-secondary admin-tab-btn active" data-tab="production" style="padding:8px 16px; font-size:12px;">PRODUCCIÓN</button>
                 <button class="btn-secondary admin-tab-btn" data-tab="orders" style="padding:8px 16px; font-size:12px;">TODOS LOS PEDIDOS</button>
+                <button class="btn-secondary admin-tab-btn" data-tab="products" style="padding:8px 16px; font-size:12px;">ARTÍCULOS</button>
                 <a href="/cuenta.html" class="btn-secondary" id="admin-exit-btn" style="padding:8px 16px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center;">SALIR</a>
                 <button id="admin-logout-btn" style="padding:10px 22px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; border-radius:var(--radius-sm); background-color:var(--bg-card); color:var(--accent-error); border:2px solid var(--accent-error); cursor:pointer; transition:all var(--transition-fast);">CERRAR SESIÓN</button>
             </div>
         </div>
         <div id="admin-tab-production" class="account-tab"></div>
         <div id="admin-tab-orders" class="account-tab" style="display:none;"></div>
+        <div id="admin-tab-products" class="account-tab" style="display:none;"></div>
 
         <div style="margin-top:30px; padding-top:20px; border-top:1px solid var(--border-color); display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <input type="email" id="test-email-input" placeholder="tu-email@ejemplo.com" class="form-input" style="max-width:260px;">
@@ -113,6 +116,10 @@ function renderDashboard(container) {
             btn.classList.add('active');
             container.querySelectorAll('.account-tab').forEach(t => t.style.display = 'none');
             document.getElementById(`admin-tab-${btn.dataset.tab}`).style.display = 'block';
+            if (btn.dataset.tab === 'products' && !btn.dataset.loaded) {
+                btn.dataset.loaded = '1';
+                initAdminProducts(document.getElementById('admin-tab-products'));
+            }
         });
     });
 
