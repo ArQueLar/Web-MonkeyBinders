@@ -2869,3 +2869,102 @@ p {
         visibility: visible;
     }
 }
+
+/* ==========================================================================
+   BANNER DE INICIO EN MÓVIL: más compacto
+   ========================================================================== */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 18px 12px 14px;
+    }
+
+    .hero-carousel .hero-slide,
+    .hero-carousel .hero-content {
+        padding: 16px 14px;
+    }
+
+    .hero-carousel .hero-badge {
+        font-size: 9.5px;
+        letter-spacing: 0.03em;
+        padding: 4px 10px;
+        margin-bottom: 8px;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .hero-carousel .hero-title {
+        font-size: 21px;
+        margin-bottom: 8px;
+    }
+
+    .hero-carousel .hero-subtitle {
+        font-size: 12.5px;
+        margin-bottom: 12px;
+    }
+
+    .hero-carousel .hero-buttons {
+        gap: 8px;
+    }
+
+    .hero-product-slide {
+        gap: 4px;
+    }
+
+    .hero-product-img img {
+        max-height: 150px;
+    }
+
+    .hero-product-title {
+        font-size: 18px;
+        margin-top: 2px;
+    }
+
+    .hero-product-price {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .hero-carousel-nav {
+        margin-top: 8px;
+    }
+
+    .hero-nav-arrow {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ==========================================================================
+   PULIDO: tarjetas de producto y banner de la tienda
+   ========================================================================== */
+.current-price {
+    white-space: nowrap;
+}
+
+.add-cart-btn {
+    white-space: nowrap;
+    justify-content: center;
+}
+
+.store-banner-content h1,
+.store-banner-content p {
+    text-shadow: none;
+}
+
+@media (max-width: 480px) {
+    .product-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .product-footer .add-cart-btn {
+        width: 100%;
+        padding: 8px 10px;
+        min-height: 36px;
+    }
+
+    .store-hero-banner {
+        padding: 28px 14px;
+    }
+}
