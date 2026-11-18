@@ -51,9 +51,10 @@ function updateCartUI() {
                         <div class="cart-item-name">${escapeHtml(item.product.name)}</div>
                         <div class="cart-item-price">${item.product.price.toFixed(2)} €</div>
                         <div class="cart-item-qty">
-                            <button class="qty-btn" onclick="updateQty('${item.product.id}', -1)">-</button>
-                            <span>${item.quantity}</span>
-                            <button class="qty-btn" onclick="updateQty('${item.product.id}', 1)">+</button>
+                            <button class="qty-btn" aria-label="Quitar una unidad" onclick="updateQty('${item.product.id}', -1)">-</button>
+                            <span class="cart-item-qty-num">${item.quantity}</span>
+                            <button class="qty-btn" aria-label="Añadir una unidad" onclick="updateQty('${item.product.id}', 1)">+</button>
+                            <button class="cart-item-remove" aria-label="Eliminar del carrito" onclick="updateQty('${item.product.id}', -9999)">Eliminar</button>
                         </div>
                     </div>
                 </div>

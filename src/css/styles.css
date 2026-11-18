@@ -3025,3 +3025,56 @@ textarea {
     align-items: center;
     gap: 8px;
 }
+
+/* ==========================================================================
+   CARRITO LATERAL: controles más cómodos y botón Eliminar
+   ========================================================================== */
+.cart-item-qty {
+    gap: 8px;
+}
+
+.cart-item-qty .qty-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cart-item-qty .qty-btn:hover {
+    border-color: var(--accent-jungle);
+    color: var(--accent-jungle);
+}
+
+.cart-item-qty-num {
+    min-width: 18px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.cart-item-remove {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 4px 2px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.cart-item-remove:hover {
+    color: var(--accent-error);
+}
+
+.cart-item-name {
+    line-height: 1.35;
+}
