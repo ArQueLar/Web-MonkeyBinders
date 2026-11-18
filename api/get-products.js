@@ -283,6 +283,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ success: true, products });
     } catch (err) {
-        return res.status(500).json({ success: false, error: 'Error interno del servidor', detail: err.message });
+        console.error('get-products:', err.message);
+        return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
 }
