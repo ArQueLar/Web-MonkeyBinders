@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de Producto | Monkey Binders</title>
     <link rel="icon" href="/assets/Cosas Web/Logo/Monkey.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/css/styles.css">
     <style>
         .product-detail-container {
@@ -79,9 +82,12 @@
             gap: 8px;
             margin-top: 8px;
         }
-        .qty-btn {
+        .qty-picker .qty-btn {
             width: 40px;
             height: 40px;
+            min-width: 40px;
+            min-height: 40px;
+            box-sizing: border-box;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -95,8 +101,10 @@
             transition: all var(--transition-fast);
             padding: 0;
             line-height: 1;
+            font-family: inherit;
+            text-align: center;
         }
-        .qty-btn:hover {
+        .qty-picker .qty-btn:hover {
             background: var(--bg-surface);
             border-color: var(--accent-jungle);
             color: var(--accent-jungle);
@@ -272,7 +280,6 @@
                     <a href="/aviso-legal.html" style="color:#d1d1d1;">Aviso Legal</a> ·
                     <a href="/terminos-condiciones.html" style="color:#d1d1d1;">Términos y Condiciones</a> ·
                     <a href="/politica-privacidad.html" style="color:#d1d1d1;">Política de Privacidad</a> ·
-                    <a href="/politica-cookies.html" style="color:#d1d1d1;">Política de Cookies</a> ·
                     <a href="/politica-envios.html" style="color:#d1d1d1;">Política de Envíos</a> ·
                     <a href="/politica-devoluciones.html" style="color:#d1d1d1;">Devoluciones y Desistimiento</a>
                 </div>
