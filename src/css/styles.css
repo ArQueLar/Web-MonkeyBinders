@@ -2982,3 +2982,46 @@ textarea {
         color: #f3cf55;
     }
 }
+
+/* Descripción del producto: ancho de lectura cómodo */
+.product-description {
+    max-width: 860px;
+    font-size: 15px !important;
+    line-height: 1.75 !important;
+}
+
+.product-description p,
+.product-description div {
+    margin-bottom: 0.6em;
+}
+
+/* ==========================================================================
+   PULIDO ESCRITORIO: destacados centrados y enlaces del pie con icono en línea
+   ========================================================================== */
+#featured-product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+}
+
+#featured-product-grid .product-card {
+    flex: 0 1 calc(25% - 18px);
+    min-width: 0;
+}
+
+@media (max-width: 1100px) {
+    #featured-product-grid { gap: 18px; }
+    #featured-product-grid .product-card { flex-basis: calc(33.333% - 12px); }
+}
+
+@media (max-width: 768px) {
+    #featured-product-grid { gap: 16px; }
+    #featured-product-grid .product-card { flex-basis: calc(50% - 8px); }
+}
+
+.footer-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}

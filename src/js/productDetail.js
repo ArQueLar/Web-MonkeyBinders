@@ -143,7 +143,7 @@ function renderProductDetail(currentProduct) {
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
                     <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 0;">DESCRIPCIÓN DEL PRODUCTO</h3>
                 </div>
-                <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+                <div class="product-description" style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
                     ${currentProduct.description}
                 </div>
             </div>
