@@ -2805,3 +2805,67 @@ p {
 .hero-carousel .hero-content.hero-slide:not(.hero-product-slide) .hero-buttons {
     margin-bottom: 0;
 }
+
+/* ==========================================================================
+   BARRA DE ANUNCIOS EN MÓVIL: un solo mensaje a la vez (una línea de alto)
+   ========================================================================== */
+@keyframes announce-3 {
+    0%   { opacity: 0; visibility: hidden; }
+    4%   { opacity: 1; visibility: visible; }
+    30%  { opacity: 1; visibility: visible; }
+    34%  { opacity: 0; visibility: hidden; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes announce-2 {
+    0%   { opacity: 0; visibility: hidden; }
+    5%   { opacity: 1; visibility: visible; }
+    45%  { opacity: 1; visibility: visible; }
+    50%  { opacity: 0; visibility: hidden; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+@media (max-width: 768px) {
+    .announcement-content {
+        display: grid;
+        gap: 0;
+        justify-items: center;
+        align-items: center;
+    }
+
+    .announcement-item {
+        grid-area: 1 / 1;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* 3 mensajes: ciclo de 12 s */
+    .announcement-content:has(.announcement-item:nth-child(3)) .announcement-item {
+        opacity: 0;
+        visibility: hidden;
+        animation: announce-3 12s infinite;
+    }
+    .announcement-content:has(.announcement-item:nth-child(3)) .announcement-item:nth-child(2) { animation-delay: 4s; }
+    .announcement-content:has(.announcement-item:nth-child(3)) .announcement-item:nth-child(3) { animation-delay: 8s; }
+
+    /* 2 mensajes: ciclo de 8 s */
+    .announcement-content:has(.announcement-item:nth-child(2)):not(:has(.announcement-item:nth-child(3))) .announcement-item {
+        opacity: 0;
+        visibility: hidden;
+        animation: announce-2 8s infinite;
+    }
+    .announcement-content:has(.announcement-item:nth-child(2)):not(:has(.announcement-item:nth-child(3))) .announcement-item:nth-child(2) { animation-delay: 4s; }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+    /* sin animaciones: se muestra solo el primer mensaje */
+    .announcement-content .announcement-item {
+        animation: none !important;
+        opacity: 0;
+        visibility: hidden;
+    }
+    .announcement-content .announcement-item:first-child {
+        opacity: 1;
+        visibility: visible;
+    }
+}
