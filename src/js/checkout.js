@@ -75,8 +75,8 @@ function renderCheckout(container, cart, session) {
                     <input type="text" id="co-b-street" placeholder="Calle y número" autocomplete="address-line1" class="form-input" required maxlength="150">
                     <input type="text" id="co-b-street2" placeholder="Piso, puerta, escalera… (opcional)" autocomplete="address-line2" class="form-input" maxlength="80">
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="co-b-postal" placeholder="Código postal" autocomplete="postal-code" class="form-input" required style="flex:1;" maxlength="10">
-                        <input type="text" id="co-b-city" placeholder="Ciudad" autocomplete="address-level2" class="form-input" required style="flex:2;" maxlength="100">
+                        <input type="text" id="co-b-postal" placeholder="Código postal" autocomplete="postal-code" class="form-input" required style="flex:0 0 44%; min-width:0;" maxlength="10">
+                        <input type="text" id="co-b-city" placeholder="Ciudad" autocomplete="address-level2" class="form-input" required style="flex:1; min-width:0;" maxlength="100">
                     </div>
                     <select id="co-b-country" class="form-input" autocomplete="country">${countryOptions()}</select>
 
@@ -104,8 +104,8 @@ function renderCheckout(container, cart, session) {
                             <input type="text" id="co-s-street" placeholder="Calle y número" class="form-input" maxlength="150">
                             <input type="text" id="co-s-street2" placeholder="Piso, puerta, escalera… (opcional)" class="form-input" maxlength="80">
                             <div style="display:flex; gap:10px;">
-                                <input type="text" id="co-s-postal" placeholder="Código postal" class="form-input" style="flex:1;" maxlength="10">
-                                <input type="text" id="co-s-city" placeholder="Ciudad" class="form-input" style="flex:2;" maxlength="100">
+                                <input type="text" id="co-s-postal" placeholder="Código postal" class="form-input" style="flex:0 0 44%; min-width:0;" maxlength="10">
+                                <input type="text" id="co-s-city" placeholder="Ciudad" class="form-input" style="flex:1; min-width:0;" maxlength="100">
                             </div>
                             <select id="co-s-country" class="form-input">${countryOptions()}</select>
                         </div>
