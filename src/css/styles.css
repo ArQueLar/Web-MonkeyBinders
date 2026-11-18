@@ -2793,3 +2793,15 @@ p {
         transition: none;
     }
 }
+
+/* La portada se centra verticalmente cuando otra diapositiva es más alta */
+.hero-carousel .hero-content.hero-slide:not(.hero-product-slide) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-carousel .hero-content.hero-slide:not(.hero-product-slide) .hero-buttons {
+    margin-bottom: 0;
+}
