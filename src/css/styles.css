@@ -2599,3 +2599,26 @@ p {
         scroll-behavior: auto !important;
     }
 }
+
+/* ==========================================================================
+   SLIDER "SOBRE NOSOTROS": integración con el fondo de la página
+   ========================================================================== */
+.about-image-card {
+    background:
+        radial-gradient(ellipse 60% 55% at 50% 52%, color-mix(in srgb, var(--bg-card) 85%, transparent) 0%, color-mix(in srgb, var(--bg-card) 35%, transparent) 55%, transparent 100%);
+    border: none;
+    box-shadow: none;
+    border-radius: var(--radius-lg, 24px);
+    overflow: visible;
+}
+
+.about-image-card .slider-img {
+    width: 88%;
+    height: 92%;
+    filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.22)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
+    transform: translate(-50%, -48%) scale(0.97);
+}
+
+.about-image-card .slider-img.active {
+    transform: translate(-50%, -50%) scale(1);
+}
