@@ -163,6 +163,10 @@ export async function sendCustomizationRequestEmail({ name, email, description, 
         console.error('Falta RESEND_API_KEY en las variables de entorno de Vercel');
         return { success: false, error: 'Falta RESEND_API_KEY' };
     }
+    // "azul_verdoso" -> "Azul Verdoso"
+    const prettyColor = String(color || '').replace(/_/g, ' ').replace(/\b\p{L}/gu, c => c.toUpperCase());
+    const SIZES = { '3x3': '3x3 (360 bolsillos)', '4x3': '4x3 (480 bolsillos)', '4x3-XL': '4x3 XL (624 bolsillos)' };
+    const prettySize = SIZES[size] || size;
     const row = (k, v) => `<tr><td style="padding:6px 12px 6px 0; color:#888; vertical-align:top;">${esc(k)}</td><td style="padding:6px 0; color:#333;">${v}</td></tr>`;
     const imageHtml = imageUrl && /^https:\/\//i.test(imageUrl)
         ? `<a href="${esc(imageUrl)}">${esc(imageUrl)}</a>`
@@ -181,8 +185,8 @@ export async function sendCustomizationRequestEmail({ name, email, description, 
                     <table style="border-collapse:collapse; font-size:14px;">
                         ${row('Nombre', esc(name))}
                         ${row('Email', esc(email))}
-                        ${row('Tamaño', esc(size))}
-                        ${row('Color', esc(color))}
+                        ${row('Tamaño', esc(prettySize))}
+                        ${row('Color', esc(prettyColor))}
                         ${row('Descripción', esc(description).replace(/\n/g, '<br>'))}
                         ${row('Imagen', imageHtml)}
                     </table>
