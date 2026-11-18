@@ -15,6 +15,7 @@ import { initAccountPage } from './accountPage.js';
 import { initAdminPage } from './adminPage.js';
 import { initCheckout } from './checkout.js';
 import { initHeroCarousel } from './heroCarousel.js';
+import { initNewsletter } from './newsletter.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -27,5 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initAccountPage();     // cuenta.html — perfil, contraseña y pedidos
     initAdminPage();       // admin.html — panel de administración (solo personal)
     initCheckout();        // checkout.html — dirección, envío y pago
+    initNewsletter();      // pie de todas las páginas — formulario Monkey Club
     initHeroCarousel();    // index.html — carrusel de novedades y más vendidos en el banner
 });

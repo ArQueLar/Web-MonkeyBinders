@@ -3078,3 +3078,20 @@ textarea {
 .cart-item-name {
     line-height: 1.35;
 }
+
+.newsletter-form {
+    position: relative;
+}
+
+.newsletter-note {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #a9a9a9;
+    margin-top: 8px;
+}
+
+.newsletter-note a {
+    color: #f3cf55;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}

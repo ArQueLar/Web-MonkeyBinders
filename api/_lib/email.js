@@ -117,3 +117,41 @@ export async function sendVerificationEmail({ to, name, link }) {
         return { success: false, error: err.message };
     }
 }
+
+
+// Avisa a la tienda de que alguien se ha suscrito al Monkey Club (formulario del pie).
+// El destino se puede cambiar con CONTACT_NOTIFY_EMAIL en Vercel.
+export async function sendNewsletterSignupEmail({ email }) {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) {
+        const message = 'Falta RESEND_API_KEY en las variables de entorno de Vercel';
+        console.error(message);
+        return { success: false, error: message };
+    }
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: process.env.RESEND_FROM_EMAIL || 'Monkey Binders <onboarding@resend.dev>',
+                to: [process.env.CONTACT_NOTIFY_EMAIL || 'monkeybinders@gmail.com'],
+                reply_to: email,
+                subject: 'Nueva suscripción al Monkey Club',
+                html: `<div style="font-family: -apple-system, Arial, sans-serif; color:#333;">
+                    <h2 style="color:#2f5233;">Nueva suscripción al Monkey Club</h2>
+                    <p>Se ha suscrito: <strong>${esc(email)}</strong></p>
+                    <p style="color:#888; font-size:12px;">Consentimiento dado en el formulario del pie de la web (Política de Privacidad aceptada).</p>
+                </div>`
+            })
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+            console.error('Resend rechazó el aviso de suscripción:', data);
+            return { success: false, error: data?.message || `Resend devolvió un error (${response.status})` };
+        }
+        return { success: true, id: data?.id };
+    } catch (err) {
+        console.error('Error de conexión al avisar de la suscripción:', err.message);
+        return { success: false, error: err.message };
+    }
+}
