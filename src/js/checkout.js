@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CHECKOUT — checkout.html: resumen del carrito, dirección de envío,
-   elección de método de envío (con mapa de puntos de recogida) y pago.
+   CHECKOUT — checkout.html, en 3 pasos: 1) Información y facturación,
+   2) Envío (domicilio o punto de recogida con mapa), 3) Revisión y pago.
    ========================================================================== */
 
 import { getImgPath, escapeHtml } from './utils.js';
@@ -38,56 +38,108 @@ export async function initCheckout() {
     renderCheckout(container, cart, session);
 }
 
+const COUNTRIES = [['ES', 'España'], ['PT', 'Portugal'], ['FR', 'Francia'], ['DE', 'Alemania'], ['IT', 'Italia']];
+const countryOptions = (selected = 'ES') => COUNTRIES.map(([c, n]) => `<option value="${c}" ${c === selected ? 'selected' : ''}>${n}</option>`).join('');
+const countryName = code => (COUNTRIES.find(([c]) => c === code) || [code, code])[1];
+
+const STEPS = [
+    { n: 1, label: 'Información' },
+    { n: 2, label: 'Envío' },
+    { n: 3, label: 'Pago' }
+];
+
 function renderCheckout(container, cart, session) {
     const subtotal = cart.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
     const user = session.loggedIn ? session.user : null;
+    let currentStep = 1;
+    let selectedServicePoint = null; // { id, name, street, house_number, city, postNumber }
+
+    const box = 'border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px 14px;';
+    const radioBox = `display:flex; align-items:center; gap:10px; ${box} cursor:pointer;`;
 
     container.innerHTML = `
-        <h1 class="section-title" style="font-size:26px; margin-bottom:24px;">FINALIZAR COMPRA</h1>
+        <h1 class="section-title" style="font-size:26px; margin-bottom:20px;">FINALIZAR COMPRA</h1>
+
+        <div id="co-stepper" style="display:flex; align-items:center; gap:8px; margin-bottom:28px; flex-wrap:wrap;"></div>
 
         <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:40px; align-items:start;" class="checkout-grid">
             <div>
-                <h2 style="font-size:16px; margin-bottom:14px;">TUS DATOS</h2>
-                <form id="checkout-form" style="display:flex; flex-direction:column; gap:12px; margin-bottom:32px;">
-                    <input type="text" name="name" placeholder="Nombre completo" class="form-input" value="${escapeHtml(user?.name || '')}" required>
-                    <input type="email" name="email" placeholder="Correo electrónico" class="form-input" value="${escapeHtml(user?.email || '')}" required>
-                    <input type="tel" name="phone" placeholder="Teléfono" class="form-input" required>
+                <!-- PASO 1: INFORMACIÓN Y FACTURACIÓN -->
+                <section class="co-step" data-step="1" style="display:flex; flex-direction:column; gap:12px;">
+                    <h2 style="font-size:16px; margin-bottom:2px;">1. INFORMACIÓN Y FACTURACIÓN</h2>
+                    <input type="text" id="co-name" placeholder="Nombre completo" autocomplete="name" class="form-input" value="${escapeHtml(user?.name || '')}" required maxlength="120">
+                    <input type="email" id="co-email" placeholder="Correo electrónico" autocomplete="email" class="form-input" value="${escapeHtml(user?.email || '')}" required maxlength="254">
+                    <input type="tel" id="co-phone" placeholder="Teléfono" autocomplete="tel" class="form-input" required maxlength="30">
 
-                    <h2 style="font-size:16px; margin:18px 0 4px;">MÉTODO DE ENVÍO</h2>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <label style="display:flex; align-items:center; gap:10px; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px 14px; cursor:pointer;">
-                            <input type="radio" name="deliveryMethod" value="home" checked class="checkout-delivery-radio">
-                            <span>🏠 Entrega a domicilio</span>
+                    <h3 style="font-size:13px; margin:14px 0 0; color:var(--text-secondary);">DIRECCIÓN DE FACTURACIÓN</h3>
+                    <input type="text" id="co-b-street" placeholder="Calle y número" autocomplete="street-address" class="form-input" required maxlength="200">
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="co-b-postal" placeholder="Código postal" autocomplete="postal-code" class="form-input" required style="flex:1;" maxlength="10">
+                        <input type="text" id="co-b-city" placeholder="Ciudad" autocomplete="address-level2" class="form-input" required style="flex:2;" maxlength="100">
+                    </div>
+                    <select id="co-b-country" class="form-input" autocomplete="country">${countryOptions()}</select>
+
+                    <button type="button" class="btn-primary" data-next="2" style="width:100%; justify-content:center; padding:14px; margin-top:10px;">CONTINUAR AL ENVÍO →</button>
+                </section>
+
+                <!-- PASO 2: ENVÍO -->
+                <section class="co-step" data-step="2" style="display:none; flex-direction:column; gap:12px;">
+                    <h2 style="font-size:16px; margin-bottom:2px;">2. MÉTODO DE ENVÍO</h2>
+                    <label style="${radioBox}">
+                        <input type="radio" name="co-delivery" value="home" checked>
+                        <span>🏠 Entrega a domicilio</span>
+                    </label>
+                    <label style="${radioBox}">
+                        <input type="radio" name="co-delivery" value="pickup">
+                        <span>📮 Recogida en punto de Correos</span>
+                    </label>
+
+                    <div id="co-home-box" style="display:flex; flex-direction:column; gap:12px; margin-top:4px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                            <input type="checkbox" id="co-same" checked>
+                            <span>Enviar a la dirección de facturación</span>
                         </label>
-                        <label style="display:flex; align-items:center; gap:10px; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px 14px; cursor:pointer;">
-                            <input type="radio" name="deliveryMethod" value="pickup" class="checkout-delivery-radio">
-                            <span>📮 Recogida en punto de Correos</span>
-                        </label>
+                        <div id="co-ship-fields" style="display:none; flex-direction:column; gap:12px;">
+                            <input type="text" id="co-s-street" placeholder="Calle y número" class="form-input" maxlength="200">
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" id="co-s-postal" placeholder="Código postal" class="form-input" style="flex:1;" maxlength="10">
+                                <input type="text" id="co-s-city" placeholder="Ciudad" class="form-input" style="flex:2;" maxlength="100">
+                            </div>
+                            <select id="co-s-country" class="form-input">${countryOptions()}</select>
+                        </div>
                     </div>
 
-                    <div style="display:flex; gap:10px; margin-top:4px;">
-                        <input type="text" name="postalCode" placeholder="Código postal" class="form-input" required style="flex:1;" id="checkout-postal-code">
-                        <select name="country" class="form-input" id="checkout-country" style="flex:1;">
-                            <option value="ES" selected>España</option>
-                            <option value="PT">Portugal</option>
-                            <option value="FR">Francia</option>
-                            <option value="DE">Alemania</option>
-                            <option value="IT">Italia</option>
-                        </select>
+                    <div id="co-pickup-box" style="display:none; flex-direction:column; gap:12px; margin-top:4px;">
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="co-p-postal" placeholder="Código postal de búsqueda" class="form-input" style="flex:1;" maxlength="10">
+                            <select id="co-p-country" class="form-input" style="flex:1;">${countryOptions()}</select>
+                        </div>
+                        <button type="button" class="btn-secondary" id="open-spp-btn" style="width:100%; justify-content:center; padding:10px;">📍 Elegir punto de recogida</button>
+                        <div id="spp-selected-info" style="font-size:12.5px; color:var(--text-secondary);"></div>
                     </div>
 
-                    <div id="checkout-home-fields" style="display:flex; flex-direction:column; gap:12px; overflow:hidden; max-height:130px; opacity:1; transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.35s ease;">
-                        <input type="text" name="street" id="checkout-street" placeholder="Calle y número" class="form-input" required>
-                        <input type="text" name="city" id="checkout-city" placeholder="Ciudad" class="form-input" required>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button type="button" class="btn-secondary" data-next="1" style="padding:14px 18px;">← ATRÁS</button>
+                        <button type="button" class="btn-primary" data-next="3" style="flex:1; justify-content:center; padding:14px;">CONTINUAR AL PAGO →</button>
                     </div>
+                </section>
 
-                    <div id="checkout-pickup-picker" style="overflow:hidden; max-height:0; opacity:0; transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.35s ease;"></div>
+                <!-- PASO 3: REVISIÓN Y PAGO -->
+                <section class="co-step" data-step="3" style="display:none; flex-direction:column; gap:12px;">
+                    <h2 style="font-size:16px; margin-bottom:2px;">3. REVISIÓN Y PAGO</h2>
+                    <div id="co-review" style="display:flex; flex-direction:column; gap:10px;"></div>
 
-                    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-muted); cursor:pointer; margin-top:14px;">
-                        <input type="checkbox" name="acceptTerms" required style="margin-top:2px; flex-shrink:0;">
+                    <label style="display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-muted); cursor:pointer; margin-top:6px;">
+                        <input type="checkbox" id="co-terms" style="margin-top:2px; flex-shrink:0;">
                         <span>He leído y acepto los <a href="/terminos-condiciones.html" target="_blank" style="color:var(--accent-jungle);">Términos y Condiciones</a> y la <a href="/politica-privacidad.html" target="_blank" style="color:var(--accent-jungle);">Política de Privacidad</a>.</span>
                     </label>
-                </form>
+
+                    <div style="display:flex; gap:10px; margin-top:6px;">
+                        <button type="button" class="btn-secondary" data-next="2" style="padding:14px 18px;">← ATRÁS</button>
+                        <button type="button" class="btn-primary" id="checkout-pay-btn" style="flex:1; justify-content:center; padding:14px;">PAGAR CON TARJETA</button>
+                    </div>
+                    <div id="checkout-error" class="form-status-error" style="display:none; font-size:12.5px;"></div>
+                </section>
             </div>
 
             <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px;">
@@ -110,28 +162,120 @@ function renderCheckout(container, cart, session) {
                         <span>Subtotal</span><span>${subtotal.toFixed(2)} €</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <span>Envío</span><span id="checkout-shipping-display">${subtotal >= FREE_SHIPPING_THRESHOLD ? 'Gratis' : 'se calcula al elegir'}</span>
+                        <span>Envío</span><span id="checkout-shipping-display"></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:16px; font-weight:800; color:var(--accent-jungle); margin-top:10px;">
-                        <span>Total</span><span id="checkout-total-display">${subtotal.toFixed(2)} €</span>
+                        <span>Total</span><span id="checkout-total-display"></span>
                     </div>
                 </div>
-
-                <button class="btn-primary" id="checkout-pay-btn" style="width:100%; justify-content:center; padding:14px; margin-top:20px;">
-                    IR A PAGAR
-                </button>
-                <div id="checkout-error" class="form-status-error" style="display:none; margin-top:10px; font-size:12.5px;"></div>
             </div>
         </div>
     `;
-    let selectedServicePoint = null; // { id, name, street, house_number, city, postNumber }
 
+    const $ = id => document.getElementById(id);
+    const val = id => ($(id)?.value || '').trim();
+    const deliveryMethod = () => document.querySelector('input[name="co-delivery"]:checked').value;
+    const sameAddress = () => $('co-same').checked;
+
+    // --- Indicador de pasos (clicar un paso ya completado permite volver a él) ---
+    function renderStepper() {
+        $('co-stepper').innerHTML = STEPS.map((st, idx) => {
+            const done = st.n < currentStep;
+            const active = st.n === currentStep;
+            const color = active || done ? 'var(--accent-jungle)' : 'var(--text-muted)';
+            return `
+                ${idx > 0 ? `<div style="flex:1; min-width:16px; height:2px; background:${done || active ? 'var(--accent-jungle)' : 'var(--border-color)'};"></div>` : ''}
+                <button type="button" ${done ? `data-goto="${st.n}"` : 'disabled'} style="display:flex; align-items:center; gap:8px; background:none; border:none; padding:0; cursor:${done ? 'pointer' : 'default'}; color:${color}; font-weight:${active ? 800 : 600}; font-size:13px;">
+                    <span style="width:26px; height:26px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; border:2px solid ${color}; ${done || active ? `background:${active ? 'transparent' : 'var(--accent-jungle)'};` : ''} ${done ? 'color:#fff;' : ''}">${done ? '✓' : st.n}</span>
+                    <span>${st.label}</span>
+                </button>`;
+        }).join('');
+        $('co-stepper').querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => goToStep(Number(b.dataset.goto))));
+    }
+
+    function showStep(n, scroll = true) {
+        currentStep = n;
+        document.querySelectorAll('.co-step').forEach(sec => {
+            sec.style.display = Number(sec.dataset.step) === n ? 'flex' : 'none';
+        });
+        renderStepper();
+        if (n === 3) renderReview();
+        $('checkout-error').style.display = 'none';
+        if (scroll) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Valida solo los campos visibles/requeridos del paso actual
+    function validateStep(n) {
+        const section = document.querySelector(`.co-step[data-step="${n}"]`);
+        for (const field of section.querySelectorAll('input, select')) {
+            if (field.offsetParent === null) continue; // oculto
+            if (!field.reportValidity()) return false;
+        }
+        if (n === 1 && !/^[A-Za-z0-9 -]{3,10}$/.test(val('co-b-postal'))) {
+            $('co-b-postal').setCustomValidity('Código postal no válido');
+            $('co-b-postal').reportValidity();
+            $('co-b-postal').addEventListener('input', () => $('co-b-postal').setCustomValidity(''), { once: true });
+            return false;
+        }
+        if (n === 2) {
+            if (deliveryMethod() === 'pickup') {
+                if (!/^[A-Za-z0-9 -]{3,10}$/.test(val('co-p-postal'))) {
+                    $('co-p-postal').setCustomValidity('Introduce el código postal donde quieres recoger');
+                    $('co-p-postal').reportValidity();
+                    $('co-p-postal').addEventListener('input', () => $('co-p-postal').setCustomValidity(''), { once: true });
+                    return false;
+                }
+                if (!selectedServicePoint) {
+                    showToast('⚠ Elige un punto de recogida para continuar');
+                    return false;
+                }
+            } else if (!sameAddress() && !/^[A-Za-z0-9 -]{3,10}$/.test(val('co-s-postal'))) {
+                $('co-s-postal').setCustomValidity('Código postal no válido');
+                $('co-s-postal').reportValidity();
+                $('co-s-postal').addEventListener('input', () => $('co-s-postal').setCustomValidity(''), { once: true });
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function goToStep(n) {
+        // Avanzar exige que los pasos anteriores sean válidos; retroceder siempre se puede
+        if (n > currentStep) {
+            for (let s = currentStep; s < n; s++) if (!validateStep(s)) return;
+        }
+        showStep(n);
+    }
+
+    document.querySelectorAll('[data-next]').forEach(btn => {
+        btn.addEventListener('click', () => goToStep(Number(btn.dataset.next)));
+    });
+
+    // Intro en un campo = pasar al siguiente paso (como en Amazon)
+    document.querySelectorAll('.co-step input:not([type="checkbox"]):not([type="radio"])').forEach(inp => {
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentStep < 3) goToStep(currentStep + 1);
+            }
+        });
+    });
+
+    // --- Dirección de envío efectiva (según el método elegido) ---
+    function shippingAddress() {
+        if (deliveryMethod() === 'pickup') {
+            return { street: val('co-b-street'), city: val('co-b-city'), postalCode: val('co-p-postal'), country: val('co-p-country') || 'ES', phone: val('co-phone') };
+        }
+        if (sameAddress()) {
+            return { street: val('co-b-street'), city: val('co-b-city'), postalCode: val('co-b-postal'), country: val('co-b-country'), phone: val('co-phone') };
+        }
+        return { street: val('co-s-street'), city: val('co-s-city'), postalCode: val('co-s-postal'), country: val('co-s-country'), phone: val('co-phone') };
+    }
+
+    // --- Estimación visual del envío (el importe real lo calcula el servidor) ---
     function updateShippingEstimate() {
-        // Estimación visual en el navegador (el importe real y definitivo lo calcula
-        // siempre el servidor en /api/create-payment, esto es solo para que el
-        // cliente vea algo mientras rellena el formulario).
-        const shippingDisplay = document.getElementById('checkout-shipping-display');
-        const totalDisplay = document.getElementById('checkout-total-display');
+        const shippingDisplay = $('checkout-shipping-display');
+        const totalDisplay = $('checkout-total-display');
         if (subtotal >= FREE_SHIPPING_THRESHOLD) {
             shippingDisplay.textContent = 'Gratis';
             totalDisplay.textContent = `${subtotal.toFixed(2)} €`;
@@ -142,30 +286,36 @@ function renderCheckout(container, cart, session) {
     }
     updateShippingEstimate();
 
-    // --- Elegir método de envío: si es recogida, se abre el selector visual de Sendcloud ---
-    const pickupPicker = document.getElementById('checkout-pickup-picker');
-    const postalCodeField = document.getElementById('checkout-postal-code');
-    const countryField = document.getElementById('checkout-country');
-
-    function renderPickupPickerButton() {
-        pickupPicker.innerHTML = `
-            <button type="button" class="btn-secondary" id="open-spp-btn" style="width:100%; justify-content:center; padding:10px;">📍 Elegir punto de recogida</button>
-            <div id="spp-selected-info" style="font-size:12.5px; color:var(--text-secondary); margin-top:8px;"></div>
-        `;
-        document.getElementById('open-spp-btn').addEventListener('click', openServicePointPicker);
+    // --- Paso 2: alternar domicilio / recogida / dirección distinta ---
+    function refreshDeliveryUI() {
+        const pickup = deliveryMethod() === 'pickup';
+        $('co-home-box').style.display = pickup ? 'none' : 'flex';
+        $('co-pickup-box').style.display = pickup ? 'flex' : 'none';
+        const sameBox = !pickup && !sameAddress();
+        $('co-ship-fields').style.display = sameBox ? 'flex' : 'none';
+        ['co-s-street', 'co-s-postal', 'co-s-city'].forEach(id => { $(id).required = sameBox; });
+        $('co-p-postal').required = pickup;
+        if (pickup && !val('co-p-postal')) {
+            $('co-p-postal').value = val('co-b-postal');
+            $('co-p-country').value = val('co-b-country');
+        }
     }
+    document.querySelectorAll('input[name="co-delivery"]').forEach(r => r.addEventListener('change', () => {
+        selectedServicePoint = null;
+        $('spp-selected-info').textContent = '';
+        refreshDeliveryUI();
+    }));
+    $('co-same').addEventListener('change', refreshDeliveryUI);
+    refreshDeliveryUI();
 
+    // --- Selector visual de puntos de recogida de Sendcloud ---
     function openServicePointPicker() {
         if (typeof sendcloud === 'undefined') {
             showToast('⚠ No se pudo cargar el selector de puntos de recogida');
             return;
         }
-
-        // Si el cliente no ha escrito código postal todavía, mostramos Madrid por
-        // defecto para que el mapa no salga vacío — en cuanto lo rellene, se
-        // reabre solo con la ubicación correcta (ver el listener de más abajo).
-        const postalCode = postalCodeField.value.trim() || '28001';
-        const country = (countryField.value || 'ES').toLowerCase();
+        const postalCode = val('co-p-postal') || '28001';
+        const country = (val('co-p-country') || 'ES').toLowerCase();
 
         sendcloud.servicePoints.open({
             apiKey: import.meta.env.VITE_SENDCLOUD_PUBLIC_KEY,
@@ -175,7 +325,7 @@ function renderCheckout(container, cart, session) {
             carriers: 'correos'
         }, (servicePoint, postNumber) => {
             selectedServicePoint = { ...servicePoint, postNumber };
-            const infoEl = document.getElementById('spp-selected-info');
+            const infoEl = $('spp-selected-info');
             if (infoEl) {
                 infoEl.innerHTML = `✓ <strong>${escapeHtml(servicePoint.name)}</strong> — ${escapeHtml(servicePoint.street)} ${escapeHtml(servicePoint.house_number || '')}, ${escapeHtml(servicePoint.city)}`;
             }
@@ -183,66 +333,45 @@ function renderCheckout(container, cart, session) {
             console.error('Selector de puntos de recogida:', errors);
         });
     }
+    $('open-spp-btn').addEventListener('click', openServicePointPicker);
 
-    document.querySelectorAll('.checkout-delivery-radio').forEach(radio => {
-        radio.addEventListener('change', () => {
+    // Si cambia el código postal de búsqueda, hay que volver a elegir punto
+    $('co-p-postal').addEventListener('change', () => {
+        if (deliveryMethod() === 'pickup') {
             selectedServicePoint = null;
-            const isPickup = radio.value === 'pickup' && radio.checked;
-
-            const homeFields = document.getElementById('checkout-home-fields');
-            const streetField = document.getElementById('checkout-street');
-            const cityField = document.getElementById('checkout-city');
-
-            if (isPickup) {
-                // Se cierra "calle/ciudad" y se abre el hueco de recogida, a la vez
-                homeFields.style.maxHeight = '0px';
-                homeFields.style.opacity = '0';
-                homeFields.style.marginTop = '-12px';
-                streetField.required = false;
-                cityField.required = false;
-
-                pickupPicker.style.maxHeight = '500px';
-                pickupPicker.style.opacity = '1';
-                renderPickupPickerButton();
-            } else {
-                // Se cierra el hueco de recogida y se abre "calle/ciudad", a la vez
-                pickupPicker.style.maxHeight = '0px';
-                pickupPicker.style.opacity = '0';
-                pickupPicker.innerHTML = '';
-
-                homeFields.style.maxHeight = '130px';
-                homeFields.style.opacity = '1';
-                homeFields.style.marginTop = '0px';
-                streetField.required = true;
-                cityField.required = true;
-            }
-        });
-    });
-
-    // Si el cliente ya había elegido "recogida en punto" y cambia el código
-    // postal, reabrimos el selector automáticamente con la ubicación nueva —
-    // no hace falta volver a tocar la opción de envío.
-    postalCodeField.addEventListener('change', () => {
-        const pickupRadio = document.querySelector('.checkout-delivery-radio[value="pickup"]');
-        if (pickupRadio?.checked) {
-            selectedServicePoint = null;
+            $('spp-selected-info').textContent = '';
             openServicePointPicker();
         }
     });
 
-    // --- Pagar ---
-    document.getElementById('checkout-pay-btn').addEventListener('click', async () => {
-        const form = document.getElementById('checkout-form');
-        if (!form.reportValidity()) return;
+    // --- Paso 3: resumen de lo introducido ---
+    function renderReview() {
+        const ship = shippingAddress();
+        const shipText = deliveryMethod() === 'pickup' && selectedServicePoint
+            ? `📮 Punto de Correos: <strong>${escapeHtml(selectedServicePoint.name)}</strong><br>${escapeHtml(selectedServicePoint.street)} ${escapeHtml(selectedServicePoint.house_number || '')}, ${escapeHtml(selectedServicePoint.city)}`
+            : `🏠 ${escapeHtml(ship.street)}<br>${escapeHtml(ship.postalCode)} ${escapeHtml(ship.city)}, ${escapeHtml(countryName(ship.country))}`;
+        const row = (title, html, step) => `
+            <div style="${box} display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+                <div style="font-size:13px; line-height:1.55;"><div style="font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:3px;">${title}</div>${html}</div>
+                <button type="button" data-goto-step="${step}" style="background:none; border:none; color:var(--accent-jungle); font-weight:700; font-size:12px; cursor:pointer; flex-shrink:0;">Cambiar</button>
+            </div>`;
+        $('co-review').innerHTML =
+            row('CONTACTO', `${escapeHtml(val('co-name'))}<br>${escapeHtml(val('co-email'))} · ${escapeHtml(val('co-phone'))}`, 1) +
+            row('FACTURACIÓN', `${escapeHtml(val('co-b-street'))}<br>${escapeHtml(val('co-b-postal'))} ${escapeHtml(val('co-b-city'))}, ${escapeHtml(countryName(val('co-b-country')))}`, 1) +
+            row('ENVÍO', shipText, 2);
+        $('co-review').querySelectorAll('[data-goto-step]').forEach(b => b.addEventListener('click', () => showStep(Number(b.dataset.gotoStep))));
+    }
 
-        const deliveryMethod = form.querySelector('input[name="deliveryMethod"]:checked').value;
-        if (deliveryMethod === 'pickup' && !selectedServicePoint) {
-            showCheckoutError('Elige un punto de recogida antes de continuar.');
+    // --- Pagar ---
+    $('checkout-pay-btn').addEventListener('click', async () => {
+        if (!validateStep(1)) { showStep(1); return; }
+        if (!validateStep(2)) { showStep(2); return; }
+        if (!$('co-terms').checked) {
+            showCheckoutError('Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.');
             return;
         }
 
-        const formData = new FormData(form);
-        const payBtn = document.getElementById('checkout-pay-btn');
+        const payBtn = $('checkout-pay-btn');
         payBtn.disabled = true;
         payBtn.textContent = 'PREPARANDO PAGO...';
 
@@ -252,18 +381,12 @@ function renderCheckout(container, cart, session) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     items: cart.map(i => ({ id: i.product.id, name: i.product.name, price: i.product.price, quantity: i.quantity })),
-                    customerEmail: formData.get('email'),
-                    customerName: formData.get('name'),
-                    deliveryMethod,
+                    customerEmail: val('co-email'),
+                    customerName: val('co-name'),
+                    deliveryMethod: deliveryMethod(),
                     servicePointId: selectedServicePoint?.id,
                     servicePointPostNumber: selectedServicePoint?.postNumber,
-                    shippingAddress: {
-                        street: formData.get('street'),
-                        city: formData.get('city'),
-                        postalCode: formData.get('postalCode'),
-                        country: formData.get('country'),
-                        phone: formData.get('phone')
-                    }
+                    shippingAddress: shippingAddress()
                 })
             });
             const result = await r.json();
@@ -271,7 +394,7 @@ function renderCheckout(container, cart, session) {
             if (!result.success) {
                 showCheckoutError(result.error || 'No se pudo iniciar el pago');
                 payBtn.disabled = false;
-                payBtn.textContent = 'IR A PAGAR';
+                payBtn.textContent = 'PAGAR CON TARJETA';
                 return;
             }
 
@@ -290,13 +413,15 @@ function renderCheckout(container, cart, session) {
         } catch (err) {
             showCheckoutError('Error de conexión al preparar el pago');
             payBtn.disabled = false;
-            payBtn.textContent = 'IR A PAGAR';
+            payBtn.textContent = 'PAGAR CON TARJETA';
         }
     });
 
     function showCheckoutError(message) {
-        const errorEl = document.getElementById('checkout-error');
+        const errorEl = $('checkout-error');
         errorEl.textContent = message;
         errorEl.style.display = 'block';
     }
+
+    showStep(1, false);
 }
