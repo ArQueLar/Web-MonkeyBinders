@@ -7,7 +7,7 @@
 
 import { callOdoo, signSession, verifySession, setSessionCookie } from './_lib/auth.js';
 import { isBlocked, hit, clientIp, tooMany } from './_lib/ratelimit.js';
-import { sendVerificationEmail, sendNewsletterSignupEmail } from './_lib/email.js';
+import { sendVerificationEmail, sendNewsletterSignupEmail, sendCustomizationRequestEmail } from './_lib/email.js';
 
 // Si REQUIRE_EMAIL_VERIFICATION=true en Vercel, la cuenta se crea desactivada y solo
 // se activa al pulsar el enlace que llega por email. Requiere que el envío por Resend
@@ -26,6 +26,9 @@ export default async function handler(req, res) {
     // Formulario del pie (Monkey Club): no crea cuenta, solo avisa a la tienda por email
     if (req.body && req.body.action === 'newsletter') {
         return handleNewsletter(req, res);
+    }
+    if (req.body && req.body.action === 'customization') {
+        return handleCustomization(req, res);
     }
 
     // Límite de registros: 10 por hora y por IP
@@ -209,6 +212,37 @@ async function handleNewsletter(req, res) {
     const result = await sendNewsletterSignupEmail({ email });
     if (!result.success) {
         return res.status(500).json({ success: false, error: 'No se pudo completar la suscripción. Inténtalo de nuevo más tarde.' });
+    }
+    return res.status(200).json({ success: true });
+}
+
+
+async function handleCustomization(req, res) {
+    const key = `customization-ip:${clientIp(req)}`;
+    const block = isBlocked(key, 5);
+    if (block.blocked) return tooMany(res, block.retryAfterSec);
+    hit(key, 60 * 60 * 1000);
+
+    const body = req.body || {};
+    if (typeof body.website === 'string' && body.website.trim() !== '') {
+        return res.status(200).json({ success: true });
+    }
+    const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+    const name = str(body.name, 120);
+    const email = str(body.email, 254).toLowerCase();
+    const description = str(body.description, 3000);
+    const size = str(body.size, 60);
+    const color = str(body.color, 60);
+    const imageUrl = str(body.imageUrl, 500);
+    if (!name || !description || !size || !color) {
+        return res.status(400).json({ success: false, error: 'Faltan datos del formulario' });
+    }
+    if (!/^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/.test(email)) {
+        return res.status(400).json({ success: false, error: 'Introduce un email válido' });
+    }
+    const result = await sendCustomizationRequestEmail({ name, email, description, size, color, imageUrl });
+    if (!result.success) {
+        return res.status(500).json({ success: false, error: 'No se pudo enviar la solicitud. Inténtalo de nuevo más tarde.' });
     }
     return res.status(200).json({ success: true });
 }

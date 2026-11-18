@@ -155,3 +155,49 @@ export async function sendNewsletterSignupEmail({ email }) {
         return { success: false, error: err.message };
     }
 }
+
+// Aviso a la tienda cuando alguien envía el formulario de personalización.
+export async function sendCustomizationRequestEmail({ name, email, description, size, color, imageUrl }) {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) {
+        console.error('Falta RESEND_API_KEY en las variables de entorno de Vercel');
+        return { success: false, error: 'Falta RESEND_API_KEY' };
+    }
+    const row = (k, v) => `<tr><td style="padding:6px 12px 6px 0; color:#888; vertical-align:top;">${esc(k)}</td><td style="padding:6px 0; color:#333;">${v}</td></tr>`;
+    const imageHtml = imageUrl && /^https:\/\//i.test(imageUrl)
+        ? `<a href="${esc(imageUrl)}">${esc(imageUrl)}</a>`
+        : 'No se adjuntó ninguna imagen';
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: process.env.RESEND_FROM_EMAIL || 'Monkey Binders <onboarding@resend.dev>',
+                to: [process.env.CONTACT_NOTIFY_EMAIL || 'monkeybinders@gmail.com'],
+                reply_to: email,
+                subject: `Nueva solicitud de personalización — ${name}`,
+                html: `<div style="font-family: -apple-system, Arial, sans-serif; max-width:560px; color:#333;">
+                    <h2 style="color:#2f5233;">Nueva solicitud de personalización</h2>
+                    <table style="border-collapse:collapse; font-size:14px;">
+                        ${row('Nombre', esc(name))}
+                        ${row('Email', esc(email))}
+                        ${row('Tamaño', esc(size))}
+                        ${row('Color', esc(color))}
+                        ${row('Descripción', esc(description).replace(/\n/g, '<br>'))}
+                        ${row('Imagen', imageHtml)}
+                    </table>
+                    <p style="color:#888; font-size:12px; margin-top:20px;">Puedes responder directamente a este email para contestar al cliente. Política de Privacidad aceptada en el formulario.</p>
+                </div>`
+            })
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+            console.error('Resend rechazó la solicitud de personalización:', data);
+            return { success: false, error: data?.message || `Resend devolvió un error (${response.status})` };
+        }
+        return { success: true, id: data?.id };
+    } catch (err) {
+        console.error('Error de conexión al enviar la solicitud de personalización:', err.message);
+        return { success: false, error: err.message };
+    }
+}

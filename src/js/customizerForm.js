@@ -1,6 +1,6 @@
 /* ==========================================================================
    CUSTOMIZER FORM — formulario de personalización (tienda.html):
-   subida de imagen vía /api/upload-image y envío vía Web3Forms
+   subida de imagen vía /api/upload-image y envío por nuestro servidor (/api/register → email vía Resend)
    ========================================================================== */
 
 import { showToast } from './toast.js';
@@ -78,14 +78,7 @@ export function initCustomizerForm() {
         e.preventDefault();
         const submitBtn = document.getElementById('customizer-submit-btn');
         const statusEl = document.getElementById('customizer-form-status');
-        const accessKey = customizerForm.querySelector('input[name="access_key"]').value;
         const file = imageInput ? imageInput.files[0] : null;
-
-        if (!accessKey || accessKey === 'TU_ACCESS_KEY_DE_WEB3FORMS') {
-            statusEl.textContent = 'Falta configurar la clave de Web3Forms en el formulario.';
-            statusEl.className = 'form-status-error';
-            return;
-        }
 
         if (colorBinderInput && !colorBinderInput.value) {
             if (colorErrorText) {
@@ -113,23 +106,28 @@ export function initCustomizerForm() {
 
         try {
             const formData = new FormData(customizerForm);
-            formData.delete('attachment'); // No enviamos el archivo binario a Web3Forms (requiere plan de pago)
-
+            let imageUrl = '';
             if (file) {
                 submitBtn.textContent = 'SUBIENDO IMAGEN...';
-                const imageUrl = await uploadImage(file);
-                formData.append('Imagen del diseño', imageUrl);
-            } else {
-                formData.append('Imagen del diseño', 'No se adjuntó ninguna imagen');
+                imageUrl = await uploadImage(file);
             }
 
             submitBtn.textContent = 'ENVIANDO...';
-            const response = await fetch('https://api.web3forms.com/submit', {
+            const response = await fetch('/api/register', {
                 method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'customization',
+                    name: formData.get('Nombre y apellidos'),
+                    email: formData.get('Email'),
+                    description: formData.get('Descripción'),
+                    size: formData.get('Tamaño del Binder'),
+                    color: formData.get('Color del Binder'),
+                    imageUrl,
+                    website: ''
+                })
             });
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
 
             if (result.success) {
                 statusEl.textContent = '✓ ¡Solicitud enviada! Te contactaremos pronto por email.';
