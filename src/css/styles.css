@@ -2968,3 +2968,17 @@ p {
         padding: 28px 14px;
     }
 }
+
+/* Los campos de formulario usan la misma tipografía que el resto de la web */
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+/* Contraste: en móvil el recuadro del banner es oscuro, así que el acento va en dorado claro */
+@media (max-width: 768px) {
+    .hero-title span.accent {
+        color: #f3cf55;
+    }
+}
