@@ -15,7 +15,7 @@
 //        nadie pueda manipular lo que paga.
 
 import { buildMerchantParameters, signParameters, getRedsysUrl } from './_lib/redsys.js';
-import { calculateCartWeight, calculateShippingCost } from './_lib/shipping-pricing.js';
+import { computeShipping } from '../shared/shipping.js';
 import { searchSendcloudServicePoints } from './_lib/sendcloud.js';
 import { priceCartFromOdoo, CartValidationError } from './_lib/pricing.js';
 import crypto from 'crypto';
@@ -98,8 +98,17 @@ export default async function handler(req, res) {
         return res.status(502).json({ success: false, error: 'No se pudo validar el carrito. Inténtalo de nuevo.' });
     }
     const subtotal = Math.round(items.reduce((sum, item) => sum + item.price * item.quantity, 0) * 100) / 100;
-    const weightKg = calculateCartWeight(items);
-    const shippingCost = calculateShippingCost(weightKg, subtotal);
+    const shipping = computeShipping({
+        items,
+        subtotal,
+        country: shippingAddress.country,
+        postalCode: shippingAddress.postalCode,
+        delivery: deliveryMethod
+    });
+    if (!shipping.available) {
+        return res.status(400).json({ success: false, error: shipping.error || 'No se puede calcular el envío para este destino' });
+    }
+    const shippingCost = shipping.cost;
     const total = Math.round((subtotal + shippingCost) * 100) / 100;
 
     const order = generateOrderReference();

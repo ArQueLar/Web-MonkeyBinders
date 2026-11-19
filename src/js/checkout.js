@@ -7,7 +7,7 @@ import { getImgPath, escapeHtml } from './utils.js';
 import { checkSession } from './auth.js';
 import { showToast } from './toast.js';
 
-const FREE_SHIPPING_THRESHOLD = 200; // debe coincidir con api/_lib/shipping-pricing.js
+import { computeShipping } from '../../shared/shipping.js'; // mismo cálculo que usa el servidor
 
 function getCart() {
     try {
@@ -276,18 +276,34 @@ function renderCheckout(container, cart, session) {
         return { street: street('co-s-street'), city: val('co-s-city'), postalCode: val('co-s-postal'), country: val('co-s-country'), phone: val('co-phone') };
     }
 
-    // --- Estimación visual del envío (el importe real lo calcula el servidor) ---
+    // --- Importe del envío en pantalla (el servidor lo recalcula con las mismas tarifas) ---
+    const euro = n => `${n.toFixed(2).replace('.', ',')} €`;
+    let shippingBlocked = null; // mensaje si el envío no se puede calcular para el destino elegido
     function updateShippingEstimate() {
         const shippingDisplay = $('checkout-shipping-display');
         const totalDisplay = $('checkout-total-display');
-        if (subtotal >= FREE_SHIPPING_THRESHOLD) {
-            shippingDisplay.textContent = 'Gratis';
-            totalDisplay.textContent = `${subtotal.toFixed(2)} €`;
+        const addr = shippingAddress();
+        const r = computeShipping({
+            items: cart.map(i => ({ id: i.product.id, name: i.product.name, quantity: i.quantity })),
+            subtotal,
+            country: addr.country,
+            postalCode: addr.postalCode,
+            delivery: deliveryMethod()
+        });
+        shippingBlocked = null;
+        if (r.available) {
+            shippingDisplay.textContent = r.cost === 0 ? 'Gratis' : euro(r.cost);
+            totalDisplay.textContent = euro(subtotal + r.cost);
         } else {
-            shippingDisplay.textContent = 'entre 4,50 € y 6,00 € aprox.';
-            totalDisplay.textContent = `${subtotal.toFixed(2)} € + envío`;
+            shippingDisplay.textContent = 'Según tu dirección';
+            totalDisplay.textContent = `${euro(subtotal)} + envío`;
+            // Solo se bloquea el pago si ya hay un código postal completo y aun así no se puede enviar
+            if (String(addr.postalCode || '').replace(/\D/g, '').length >= 4 && !/código postal válido/.test(r.error || '')) {
+                shippingBlocked = r.error;
+            }
         }
     }
+    ['input', 'change'].forEach(ev => container.addEventListener(ev, updateShippingEstimate));
     updateShippingEstimate();
 
     // --- Paso 2: alternar domicilio / recogida / dirección distinta ---
@@ -370,6 +386,8 @@ function renderCheckout(container, cart, session) {
     $('checkout-pay-btn').addEventListener('click', async () => {
         if (!validateStep(1)) { showStep(1); return; }
         if (!validateStep(2)) { showStep(2); return; }
+        updateShippingEstimate();
+        if (shippingBlocked) { showCheckoutError(shippingBlocked); return; }
         if (!$('co-terms').checked) {
             showCheckoutError('Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.');
             return;
