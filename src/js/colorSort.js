@@ -5,27 +5,24 @@
    El resultado se guarda en localStorage una semana para no recalcular.
    ========================================================================== */
 
-const CACHE_KEY = 'mb_color_hues_v1';
+const CACHE_KEY = 'mb_color_hues_v2';   // v2: algoritmo por superficie (el v1 se descarta solo)
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const SIZE = 48;          // se analiza la imagen reducida a 48x48 px
 const BINS = 36;          // 36 tramos de 10° en la rueda de color
-const NEUTRAL = -1;       // negro / blanco / gris: sin color dominante
+export const NEUTRAL = -1; // negro / gris / blanco: sin color dominante
 
-// Familias en el orden en que se muestran (arcoíris) y su rango de tono (grados)
-const FAMILIES = [
-    { key: 'rojo',     test: h => h >= 345 || h < 15 },
-    { key: 'naranja',  test: h => h >= 15 && h < 45 },
-    { key: 'amarillo', test: h => h >= 45 && h < 70 },
-    { key: 'verde',    test: h => h >= 70 && h < 170 },
-    { key: 'azul',     test: h => h >= 170 && h < 255 },
-    { key: 'morado',   test: h => h >= 255 && h < 300 },
-    { key: 'rosa',     test: h => h >= 300 && h < 345 }
-];
+// Tono (0-359) que representa cada color que se puede fijar a mano desde Odoo
+// (categoría web del producto llamada "Color Rojo", "Color Negro"...).
+export const COLOR_NAME_TO_HUE = {
+    rojo: 0, naranja: 30, amarillo: 55, verde: 120, azul: 220, morado: 280, rosa: 320,
+    negro: NEUTRAL, gris: NEUTRAL, blanco: NEUTRAL, neutro: NEUTRAL
+};
 
-export function familyIndex(hue) {
-    if (typeof hue !== 'number' || hue === NEUTRAL) return FAMILIES.length; // neutros al final
-    const i = FAMILIES.findIndex(f => f.test(hue));
-    return i < 0 ? FAMILIES.length : i;
+// Clave de orden: los colores siguen la rueda empezando en el rojo (los rosados
+// y rojizos quedan pegados, sin cortes bruscos) y los neutros van al final.
+export function colorSortKey(hue) {
+    if (typeof hue !== 'number' || hue === NEUTRAL) return 1000;
+    return (hue + 15) % 360;
 }
 
 function readCache() {
@@ -59,6 +56,8 @@ function rgbToHsl(r, g, b) {
 }
 
 // Devuelve el tono dominante (0-359), NEUTRAL, o null si no se pudo analizar la imagen.
+// Se mide por SUPERFICIE: el color del binder es el que más área ocupa, no el de
+// los dibujos pequeños de la portada. Si lo que domina es negro/gris/blanco, es neutro.
 function analyze(url) {
     return new Promise(resolve => {
         const img = new Image();
@@ -71,17 +70,17 @@ function analyze(url) {
                 ctx.drawImage(img, 0, 0, SIZE, SIZE);
                 const px = ctx.getImageData(0, 0, SIZE, SIZE).data;
                 const bins = new Array(BINS).fill(0);
-                let opaque = 0, colored = 0;
+                let total = 0, neutral = 0;
                 for (let i = 0; i < px.length; i += 4) {
-                    if (px[i + 3] < 128) continue;
-                    opaque++;
+                    if (px[i + 3] < 128) continue;                       // transparente
                     const [h, s, l] = rgbToHsl(px[i], px[i + 1], px[i + 2]);
-                    if (s < 0.28 || l < 0.12 || l > 0.9) continue; // gris, negro o blanco: sin color
-                    const w = s * (1 - Math.abs(2 * l - 1));
-                    bins[Math.floor(h / (360 / BINS)) % BINS] += w;
-                    colored += w;
+                    if (l > 0.93 && s < 0.15) continue;                  // fondo blanco
+                    total++;
+                    if (l < 0.2 || s < 0.2) { neutral++; continue; }     // negro / gris
+                    bins[Math.floor(h / (360 / BINS)) % BINS]++;
                 }
-                if (!opaque || colored / opaque < 0.06) return resolve(NEUTRAL);
+                if (!total) return resolve(null);
+                if (neutral / total > 0.5) return resolve(NEUTRAL);
                 // Se suaviza con los tramos vecinos y se coge el más fuerte
                 let best = 0, bestVal = -1;
                 for (let b = 0; b < BINS; b++) {

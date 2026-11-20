@@ -175,6 +175,15 @@ export default async function handler(req, res) {
 
             const grabadocolor = categNames.includes('Color');
 
+            // Color del binder fijado a mano en Odoo: categoría web "Color Rojo", "Color Negro"...
+            // (rojo, naranja, amarillo, verde, azul, morado, rosa, negro, gris, blanco). Si no hay
+            // ninguna, la tienda lo calcula sola a partir de la foto.
+            let colorOverride = null;
+            for (const name of categNames) {
+                const m = /^color\s+(rojo|naranja|amarillo|verde|azul|morado|rosa|negro|gris|blanco)$/i.exec(String(name).trim());
+                if (m) { colorOverride = m[1].toLowerCase(); break; }
+            }
+
             let expansion = 'all';
             for (const name of categNames) {
                 if (EXPANSION_MAP[name]) { expansion = EXPANSION_MAP[name]; break; }
@@ -207,6 +216,7 @@ export default async function handler(req, res) {
                 tcg,
                 expansion,
                 grabadocolor,
+                colorOverride,
                 price: priceWithTax,
                 price12p: priceWithTax, // Odoo no tiene todavía un precio distinto para 12 bolsillos
                 rating: null,           // Odoo no tiene valoraciones conectadas todavía

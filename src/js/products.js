@@ -2,7 +2,7 @@
    PRODUCTS — catálogo, filtros, tarjetas de producto y carga desde Odoo
    ========================================================================== */
 
-import { loadHues, familyIndex } from './colorSort.js';
+import { loadHues, colorSortKey, COLOR_NAME_TO_HUE } from './colorSort.js';
 import { getImgPath } from './utils.js';
 
 export let products = [
@@ -196,11 +196,15 @@ function sortProducts(list) {
             return arr.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base', numeric: true }));
         case 'color': {
             ensureHues();
-            const hue = p => (typeof hueById[p.id] === 'number' ? hueById[p.id] : -1);
+            // Un color fijado a mano en Odoo (categoría "Color Rojo"...) manda sobre el automático
+            const hue = p => {
+                const manual = p.colorOverride && COLOR_NAME_TO_HUE[p.colorOverride];
+                if (typeof manual === 'number') return manual;
+                return typeof hueById[p.id] === 'number' ? hueById[p.id] : -1;
+            };
             return arr.sort((a, b) =>
-                familyIndex(hue(a)) - familyIndex(hue(b)) ||
-                hue(a) - hue(b) ||
-                a.name.localeCompare(b.name, 'es'));
+                colorSortKey(hue(a)) - colorSortKey(hue(b)) ||
+                a.name.localeCompare(b.name, 'es', { sensitivity: 'base', numeric: true }));
         }
         default:           // los "más vendidos" primero, sin tocar el orden entre el resto
             return arr.sort((a, b) => (b.badge === 'MÁS VENDIDO' ? 1 : 0) - (a.badge === 'MÁS VENDIDO' ? 1 : 0));
