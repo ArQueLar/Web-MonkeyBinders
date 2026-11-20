@@ -192,6 +192,8 @@ function sortProducts(list) {
             return arr.sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, 'es'));
         case 'price-desc':
             return arr.sort((a, b) => b.price - a.price || a.name.localeCompare(b.name, 'es'));
+        case 'name':
+            return arr.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base', numeric: true }));
         case 'color': {
             ensureHues();
             const hue = p => (typeof hueById[p.id] === 'number' ? hueById[p.id] : -1);
