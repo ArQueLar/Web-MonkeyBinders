@@ -4,13 +4,17 @@
 
 export function initEffects() {
     // --- ROTACIÓN AUTOMÁTICA DE IMÁGENES EN "SOBRE NOSOTROS" ---
-    const sliderImages = document.querySelectorAll('.about-image-card .slider-img');
-    if (sliderImages.length >= 2) {
-        let currentIndex = 0;
+    // Las fotos pueden sustituirse después de cargar la página (aboutSlider.js),
+    // así que en cada paso se leen las que haya en ese momento.
+    const sliderSelector = '.about-image-card .slider-img';
+    if (document.querySelectorAll(sliderSelector).length >= 2) {
         setInterval(() => {
-            sliderImages[currentIndex].classList.remove('active');
-            currentIndex = (currentIndex + 1) % sliderImages.length;
-            sliderImages[currentIndex].classList.add('active');
+            const imgs = Array.from(document.querySelectorAll(sliderSelector));
+            if (imgs.length < 2) return;
+            let current = imgs.findIndex(i => i.classList.contains('active'));
+            if (current < 0) current = 0;
+            imgs[current].classList.remove('active');
+            imgs[(current + 1) % imgs.length].classList.add('active');
         }, 3500);
     }
 

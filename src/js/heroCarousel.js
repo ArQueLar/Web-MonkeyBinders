@@ -13,7 +13,7 @@ const AUTOPLAY_MS = 6500;
 const MAX_NEW = 3;
 const MAX_BEST = 2;
 
-async function loadProducts() {
+export async function loadProducts() {
     try {
         const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
         if (raw) {

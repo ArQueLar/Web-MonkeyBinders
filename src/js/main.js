@@ -16,6 +16,7 @@ import { initAdminPage } from './adminPage.js';
 import { initCheckout } from './checkout.js';
 import { initHeroCarousel } from './heroCarousel.js';
 import { initNewsletter } from './newsletter.js';
+import { initAboutSlider } from './aboutSlider.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -29,5 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminPage();       // admin.html — panel de administración (solo personal)
     initCheckout();        // checkout.html — dirección, envío y pago
     initNewsletter();      // pie de todas las páginas — formulario Monkey Club
-    initHeroCarousel();    // index.html — carrusel de novedades y más vendidos en el banner
+    initHeroCarousel();
+    initAboutSlider();     // fotos aleatorias en "Sobre Monkey Binders"    // index.html — carrusel de novedades y más vendidos en el banner
 });

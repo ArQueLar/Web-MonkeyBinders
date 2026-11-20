@@ -2,6 +2,7 @@
    PRODUCTS — catálogo, filtros, tarjetas de producto y carga desde Odoo
    ========================================================================== */
 
+import { loadHues, familyIndex } from './colorSort.js';
 import { getImgPath } from './utils.js';
 
 export let products = [
@@ -160,8 +161,49 @@ export const filterState = {
     tcg: 'all',
     finish: 'all',
     expansion: 'all',
-    tabCategory: 'all'
+    tabCategory: 'all',
+    sort: 'featured'
 };
+
+// Tonos dominantes por producto (se calculan una vez, solo si alguien ordena por color)
+let hueById = {};
+let huesLoading = false;
+let huesLoadedFor = 0;
+const numericId = p => Number(String(p.id).replace(/\D/g, '')) || 0;
+
+function ensureHues() {
+    const physical = products.filter(p => !p.services && p.frontImg);
+    if (huesLoading || huesLoadedFor === physical.length) return;
+    huesLoading = true;
+    loadHues(physical).then(map => {
+        hueById = map;
+        huesLoadedFor = physical.length;
+        huesLoading = false;
+        if (filterState.sort === 'color') applyFilters();
+    });
+}
+
+function sortProducts(list) {
+    const arr = list.slice();
+    switch (filterState.sort) {
+        case 'newest':     // el id de Odoo crece con cada producto nuevo
+            return arr.sort((a, b) => numericId(b) - numericId(a));
+        case 'price-asc':
+            return arr.sort((a, b) => a.price - b.price || a.name.localeCompare(b.name, 'es'));
+        case 'price-desc':
+            return arr.sort((a, b) => b.price - a.price || a.name.localeCompare(b.name, 'es'));
+        case 'color': {
+            ensureHues();
+            const hue = p => (typeof hueById[p.id] === 'number' ? hueById[p.id] : -1);
+            return arr.sort((a, b) =>
+                familyIndex(hue(a)) - familyIndex(hue(b)) ||
+                hue(a) - hue(b) ||
+                a.name.localeCompare(b.name, 'es'));
+        }
+        default:           // los "más vendidos" primero, sin tocar el orden entre el resto
+            return arr.sort((a, b) => (b.badge === 'MÁS VENDIDO' ? 1 : 0) - (a.badge === 'MÁS VENDIDO' ? 1 : 0));
+    }
+}
 
 // Referencias DOM cacheadas al llamar a initCatalog()
 let productGrid = null;
@@ -230,13 +272,12 @@ export function applyFilters() {
         return matchTCG && matchFinish && matchExpansion && matchTab;
     });
 
-    // Los "más vendidos" siempre primero, sin tocar el orden entre el resto
-    filtered.sort((a, b) => (b.badge === 'MÁS VENDIDO' ? 1 : 0) - (a.badge === 'MÁS VENDIDO' ? 1 : 0));
+    const sorted = sortProducts(filtered);
 
     if (filtered.length === 0) {
         productGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">No se encontraron binders con los filtros seleccionados.</div>`;
     } else {
-        productGrid.innerHTML = filtered.map(createProductCardHTML).join('');
+        productGrid.innerHTML = sorted.map(createProductCardHTML).join('');
     }
 }
 
@@ -350,6 +391,14 @@ export function initCatalog() {
             updateFiltersCountBadge();
         });
     });
+
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            filterState.sort = sortSelect.value;
+            applyFilters();
+        });
+    }
 
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {

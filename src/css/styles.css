@@ -3095,3 +3095,53 @@ textarea {
     text-decoration: underline;
     text-underline-offset: 2px;
 }
+
+/* Selector "Ordenar por" del catálogo */
+.sort-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px 0 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    transition: border-color var(--transition-fast);
+}
+
+.sort-control:hover,
+.sort-control:focus-within {
+    border-color: var(--accent-jungle);
+}
+
+.sort-select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 26px 10px 4px;
+    cursor: pointer;
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.sort-select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .products-filter-bar-controls { width: 100%; }
+    .sort-control { flex: 1; min-width: 0; }
+    .sort-select { flex: 1; min-width: 0; }
+}
